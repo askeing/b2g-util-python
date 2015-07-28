@@ -13,7 +13,7 @@ import argparse
 import ConfigParser
 from datetime import datetime
 from argparse import ArgumentDefaultsHelpFormatter
-from utilities.adb_helper import AdbHelper
+from util.adb_helper import AdbHelper
 
 
 class BackupRestoreHelper(object):
@@ -125,27 +125,31 @@ class BackupRestoreHelper(object):
             self.logger.info('The Version of Backup Profile: {}'.format(version_of_backup))
         else:
             return False
-        # get remote version
-        tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
-        if not AdbHelper.adb_pull(self._REMOTE_DIR_B2G + os.sep + self._FILE_PROFILE_INI, tmp_dir, serial=serial):
-            self.logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
-            return False
-        remote_config = ConfigParser.ConfigParser()
-        remote_config.read(tmp_dir + os.sep + self._FILE_PROFILE_INI)
-        remote_profile_path = remote_config.get('Profile0', 'Path')
-        if not AdbHelper.adb_pull(self._REMOTE_DIR_B2G + os.sep + remote_profile_path + os.sep + self._FILE_COMPATIBILITY_INI, tmp_dir, serial=serial):
-            self.logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
-            return False
-        remote_config.read(tmp_dir + os.sep + self._FILE_COMPATIBILITY_INI)
-        version_of_device = remote_config.get('Compatibility', 'LastVersion')
-        self.logger.info('The Version of Device Profile: {}'.format(version_of_device))
-        # compare
-        version_of_backup_float = float(version_of_backup.split('.')[0])
-        version_of_device_float = float(version_of_device.split('.')[0])
-        if version_of_device_float >= version_of_backup_float:
-            return True
-        else:
-            return False
+        try:
+            # get remote version
+            tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
+            if not AdbHelper.adb_pull(self._REMOTE_DIR_B2G + os.sep + self._FILE_PROFILE_INI, tmp_dir, serial=serial):
+                self.logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
+                return False
+            remote_config = ConfigParser.ConfigParser()
+            remote_config.read(tmp_dir + os.sep + self._FILE_PROFILE_INI)
+            remote_profile_path = remote_config.get('Profile0', 'Path')
+            if not AdbHelper.adb_pull(self._REMOTE_DIR_B2G + os.sep + remote_profile_path + os.sep + self._FILE_COMPATIBILITY_INI, tmp_dir, serial=serial):
+                self.logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
+                return False
+            remote_config.read(tmp_dir + os.sep + self._FILE_COMPATIBILITY_INI)
+            version_of_device = remote_config.get('Compatibility', 'LastVersion')
+            self.logger.info('The Version of Device Profile: {}'.format(version_of_device))
+            # compare
+            version_of_backup_float = float(version_of_backup.split('.')[0])
+            version_of_device_float = float(version_of_device.split('.')[0])
+            if version_of_device_float >= version_of_backup_float:
+                return True
+            else:
+                return False
+        finally:
+            self.logger.debug('Removing [{0}] folder...'.format(tmp_dir))
+            shutil.rmtree(tmp_dir)
 
     def restore_profile(self, local_dir, serial=None):
         self.logger.info('Restoring profile...')
