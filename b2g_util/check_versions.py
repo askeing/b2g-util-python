@@ -15,8 +15,8 @@ import subprocess
 from distutils import util
 from datetime import datetime
 from argparse import ArgumentDefaultsHelpFormatter
-from utilities import console_utilities
-from utilities.adb_helper import AdbHelper
+from util import console_utilities
+from util.adb_helper import AdbHelper
 
 
 class VersionChecker(object):
@@ -67,7 +67,10 @@ class VersionChecker(object):
                 deopt_file = deopt_dir + os.sep + 'omni.ja'
                 deopt_exec = tmp_dir + os.sep + 'optimizejars.py'
                 os.makedirs(deopt_dir)
-                shutil.copyfile('./optimizejars.py', deopt_exec)
+                # TODO rewrite optimizejars.py if possible
+                current_dir = cur = os.path.dirname(os.path.abspath(__file__))
+                current_exec = os.path.join(current_dir, 'misc', 'optimizejars.py')
+                shutil.copyfile(current_exec, deopt_exec)
                 cmd = 'python %s --deoptimize %s %s %s' % (deopt_exec, tmp_dir, tmp_dir, deopt_dir)
                 p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 output = p.communicate()[0]
