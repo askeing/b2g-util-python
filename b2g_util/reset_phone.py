@@ -7,7 +7,7 @@
 import os
 import argparse
 from argparse import ArgumentDefaultsHelpFormatter
-from utilities.adb_helper import AdbHelper
+from util.adb_helper import AdbHelper
 
 
 class PhoneReseter(object):
