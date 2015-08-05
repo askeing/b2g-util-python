@@ -252,7 +252,7 @@ class BackupRestoreHelper(object):
                 self.logger.warn('The version on device is smaller than backup\'s version.')
 
 
-if __name__ == "__main__":
+def main():
     my_app = BackupRestoreHelper()
     # setup logger
     formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -266,3 +266,7 @@ if __name__ == "__main__":
         exit(1)
     # run
     my_app.run()
+
+
+if __name__ == '__main__':
+    main()

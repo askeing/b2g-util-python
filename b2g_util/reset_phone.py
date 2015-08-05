@@ -76,10 +76,14 @@ class PhoneReseter(object):
                         ret = self.reset_phone(serial=device)
 
 
-if __name__ == "__main__":
+def main():
     if not AdbHelper.has_adb():
         print 'There is no "adb" in your environment PATH.'
         exit(1)
 
     my_app = PhoneReseter()
     my_app.run()
+
+
+if __name__ == '__main__':
+    main()

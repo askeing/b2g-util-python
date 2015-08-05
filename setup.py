@@ -9,13 +9,20 @@ install_requires = [
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))
-# get documentation from the README
+# get documentation from the README and HISTORY
 try:
     with open(os.path.join(here, 'README.rst')) as doc:
-        long_description = doc.read()
+        readme = doc.read()
 except:
-    long_description = ''
+    readme = ''
 
+try:
+    with open(os.path.join(here, 'HISTORY.rst')) as doc:
+        history = doc.read()
+except:
+    history = ''
+
+long_description = readme + '\n\n' + history
 
 if __name__ == '__main__':
     setup(
@@ -31,5 +38,12 @@ if __name__ == '__main__':
         package_data={},
         install_requires=install_requires,
         zip_safe=False,
+        entry_points="""
+        # -*- Entry points: -*-
+        [console_scripts]
+        backup_restore_profile = b2g_util.backup_restore_profile:main
+        check_versions = b2g_util.check_versions:main
+        reset_phone = b2g_util.reset_phone:main
+        """,
     )
 
