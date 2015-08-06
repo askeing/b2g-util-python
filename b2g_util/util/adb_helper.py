@@ -29,7 +29,8 @@ class AdbWrapper(object):
         logger.debug('RET: {0}'.format(output))
         output = re.sub(r'\r+', '', output)
         output_list = re.split(r'\n+', output)
-        output_list = [item for item in output_list if item]
+        # remove '', '* daemon not running. starting it now on port xxx *', and '* daemon started successfully *'
+        output_list = [item for item in output_list if item and not item.startswith('* daemon')]
         filter = re.compile(r'(^List of devices attached\s*|^\s+$)')
         output_list = [i for i in output_list if not filter.search(i)]
         output_list = [(re.split(r'\t', item)) for item in output_list if True]
