@@ -94,10 +94,12 @@ class AdbWrapper(object):
         logger.debug('cmd: {0}'.format(cmd))
         logger.debug('output: {0}'.format(output))
         if p.returncode is 0 and (not 'cannot' in output):
-            logger.info(output)
+            logger.debug('adb root successed')
+            logger.info('{}'.format(output))
             return True
         else:
-            logger.warning(output)
+            logger.debug('adb root failed')
+            logger.warning('{}'.format(output))
             return False
 
 
