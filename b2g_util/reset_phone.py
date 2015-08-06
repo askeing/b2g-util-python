@@ -7,7 +7,7 @@
 import os
 import argparse
 from argparse import ArgumentDefaultsHelpFormatter
-from util.adb_helper import AdbHelper
+from util.adb_helper import AdbWrapper
 
 
 class PhoneReseter(object):
@@ -22,14 +22,14 @@ class PhoneReseter(object):
 
     def reset_phone(self, serial=None):
         self.print_log('Starting to Reset Firefox OS Phone...')
-        AdbHelper.adb_shell('rm -r /cache/*', serial=serial)
-        AdbHelper.adb_shell('mkdir /cache/recovery', serial=serial)
-        AdbHelper.adb_shell('echo "--wipe_data" > /cache/recovery/command', serial=serial)
-        AdbHelper.adb_shell('reboot recovery', serial=serial)
+        AdbWrapper.adb_shell('rm -r /cache/*', serial=serial)
+        AdbWrapper.adb_shell('mkdir /cache/recovery', serial=serial)
+        AdbWrapper.adb_shell('echo "--wipe_data" > /cache/recovery/command', serial=serial)
+        AdbWrapper.adb_shell('reboot recovery', serial=serial)
         self.print_log('Reset Firefox OS Phone done.')
 
     def run(self):
-        devices = AdbHelper.adb_devices()
+        devices = AdbWrapper.adb_devices()
 
         if len(devices) == 0:
             print 'No device.'
@@ -77,7 +77,7 @@ class PhoneReseter(object):
 
 
 def main():
-    if not AdbHelper.has_adb():
+    if not AdbWrapper.has_adb():
         print 'There is no "adb" in your environment PATH.'
         exit(1)
 
