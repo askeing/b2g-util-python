@@ -41,6 +41,12 @@ class VersionChecker(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
+        self.check_adb()
+
+    def check_adb(self):
+        # check adb
+        if not AdbWrapper.has_adb():
+            raise Exception('There is no "adb" in your environment PATH.')
 
     def get_device_info(self, serial=None):
         try:
@@ -209,8 +215,7 @@ class VersionChecker(object):
                 logger.error('Invalid NO_COLOR value [{0}].'.format(os.environ['NO_COLOR']))
 
         if len(devices) == 0:
-            logger.error('No device.')
-            exit(1)
+            raise Exception('No device.')
         elif len(devices) >= 1:
             final_serial = AdbHelper.get_serial(self.args.serial)
             if final_serial is None:
@@ -233,10 +238,6 @@ class VersionChecker(object):
 
 
 def main():
-    if not AdbWrapper.has_adb():
-        logger.error('There is no "adb" in your environment PATH.')
-        exit(1)
-
     try:
         VersionChecker().run()
     except Exception as e:

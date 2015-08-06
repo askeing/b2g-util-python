@@ -53,6 +53,12 @@ class BackupRestoreHelper(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
+        self.check_adb()
+
+    def check_adb(self):
+        # check adb
+        if not AdbWrapper.has_adb():
+            raise Exception('There is no "adb" in your environment PATH.')
 
     def stop_b2g(self, serial=None):
         logger.info('Stop B2G.')
@@ -255,11 +261,6 @@ class BackupRestoreHelper(object):
 
 
 def main():
-    # check adb
-    if not AdbWrapper.has_adb():
-        print 'There is no "adb" in your environment PATH.'
-        exit(1)
-    # run
     try:
         BackupRestoreHelper().run()
     except Exception as e:
