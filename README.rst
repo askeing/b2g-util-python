@@ -9,7 +9,9 @@ B2G python utilities library, and some tools.
 Installation
 ------------
 
-To install b2g_util, simply:
+To install **b2g_util**, simply:
+
+.. code-block:: bash
 
     $ pip install b2g_util
 
@@ -26,10 +28,10 @@ b2g_backup_restore_profile
 
 .. code-block:: bash
 
-    usage: backup_restore_profile [-h] [-s SERIAL] [-b] [-r] [--sdcard]
-                                  [--no-reboot] [-p PROFILE_DIR] [--debug]
+    usage: b2g_backup_restore_profile [-h] [-s SERIAL] [-b] [-r] [--sdcard]
+                                      [--no-reboot] [-p PROFILE_DIR] [-v]
 
-    Backup and restore Firefox OS profiles. (BETA)
+    Workaround for backing up and restoring Firefox OS profiles. (BETA)
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -44,7 +46,8 @@ b2g_backup_restore_profile
                             False)
       -p PROFILE_DIR, --profile-dir PROFILE_DIR
                             Specify the profile folder. (default: mozilla-profile)
-      --debug               Debug mode. (default: False)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)
 
 
 b2g_check_versions
@@ -52,8 +55,8 @@ b2g_check_versions
 
 .. code-block:: bash
 
-    usage: check_versions [-h] [--no-color] [-s SERIAL] [--log-text LOG_TEXT]
-                          [--log-json LOG_JSON]
+    usage: b2g_check_versions [-h] [--no-color] [-s SERIAL] [--log-text LOG_TEXT]
+                              [--log-json LOG_JSON] [-v]
 
     Check the version information of Firefox OS.
 
@@ -67,6 +70,8 @@ b2g_check_versions
                             environment variable. (default: None)
       --log-text LOG_TEXT   Text ouput. (default: None)
       --log-json LOG_JSON   JSON output. (default: None)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)
 
 
 b2g_reset_phone
@@ -74,7 +79,7 @@ b2g_reset_phone
 
 .. code-block:: bash
 
-    usage: reset_phone [-h] [-s SERIAL]
+    usage: b2g_reset_phone [-h] [-s SERIAL] [-v]
 
     Reset Firefox OS Phone.
 
@@ -84,4 +89,5 @@ b2g_reset_phone
                             Directs command to the device or emulator with the
                             given serial number. Overrides ANDROID_SERIAL
                             environment variable. (default: None)
-
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)

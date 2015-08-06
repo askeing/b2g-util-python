@@ -2,11 +2,9 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION='0.0.2'
+VERSION='0.0.3'
 
-install_requires = [
-#  'taskcluster_util>=0.0.8',
-]
+install_requires = []
 
 here = os.path.dirname(os.path.abspath(__file__))
 # get documentation from the README and HISTORY
