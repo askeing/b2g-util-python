@@ -1,6 +1,19 @@
 Release History
 ---------------
 
+0.0.4 (2015-08-12)
+++++++++++++++++++
+**Features and Improvements**
+
+- Add **b2g_get_crashreports** tool
+- Refactoring the ADBWrapper, it will raise exception when command failed.
+- Return stdout and return code from device when running adb shell command.
+
+**bugfixes**
+
+- Set backup/restore arguments as required and put them into same group.
+- Wait a moment when restarting adbd.
+
 0.0.3 (2015-08-06)
 ++++++++++++++++++
 **Features and Improvements**

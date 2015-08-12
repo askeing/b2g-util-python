@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION='0.0.3'
+VERSION='0.0.4'
 
 install_requires = []
 
@@ -41,6 +41,7 @@ if __name__ == '__main__':
         [console_scripts]
         b2g_backup_restore_profile = b2g_util.backup_restore_profile:main
         b2g_check_versions = b2g_util.check_versions:main
+        b2g_get_crashreports = b2g_util.get_crashreports:main
         b2g_reset_phone = b2g_util.reset_phone:main
         """,
     )

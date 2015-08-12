@@ -74,6 +74,25 @@ b2g_check_versions
                             (default: False)
 
 
+b2g_get_crashreports
+++++++++++++++++++++
+
+.. code-block:: bash
+
+    usage: b2g_get_crashreports [-h] [-s SERIAL] [-v]
+
+    Get the Crash Reports from Firefox OS Phone.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -s SERIAL, --serial SERIAL
+                            Directs command to the device or emulator with the
+                            given serial number. Overrides ANDROID_SERIAL
+                            environment variable. (default: None)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)
+
+
 b2g_reset_phone
 +++++++++++++++
 
