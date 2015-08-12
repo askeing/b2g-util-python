@@ -140,6 +140,9 @@ class AdbWrapper(object):
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is 0 and (not 'cannot' in output):
+            if 'restarting' in output:
+                import time
+                time.sleep(1)
             logger.debug('adb root successed')
             logger.info('{}'.format(output))
             return True
