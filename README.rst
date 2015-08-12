@@ -28,7 +28,7 @@ b2g_backup_restore_profile
 
 .. code-block:: bash
 
-    usage: b2g_backup_restore_profile [-h] [-s SERIAL] [-b] [-r] [--sdcard]
+    usage: b2g_backup_restore_profile [-h] [-s SERIAL] (-b | -r) [--sdcard]
                                       [--no-reboot] [-p PROFILE_DIR] [-v]
 
     Workaround for backing up and restoring Firefox OS profiles. (BETA)

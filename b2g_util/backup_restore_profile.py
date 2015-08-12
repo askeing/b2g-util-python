@@ -39,8 +39,9 @@ class BackupRestoreHelper(object):
         self.arg_parser = argparse.ArgumentParser(description='Workaround for backing up and restoring Firefox OS profiles. (BETA)',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
         self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
-        self.arg_parser.add_argument('-b', '--backup', action='store_true', dest='backup', default=False, help='Backup user profile.')
-        self.arg_parser.add_argument('-r', '--restore', action='store_true', dest='restore', default=False, help='Restore user profile.')
+        br_group = self.arg_parser.add_mutually_exclusive_group(required=True)
+        br_group.add_argument('-b', '--backup', action='store_true', dest='backup', default=False, help='Backup user profile.')
+        br_group.add_argument('-r', '--restore', action='store_true', dest='restore', default=False, help='Restore user profile.')
         self.arg_parser.add_argument('--sdcard', action='store_true', dest='sdcard', default=False, help='Also backup/restore SD card.')
         self.arg_parser.add_argument('--no-reboot', action='store_true', dest='no_reboot', default=False, help='Do not reboot B2G after backup/restore.')
         self.arg_parser.add_argument('-p', '--profile-dir', action='store', dest='profile_dir', default='mozilla-profile', help='Specify the profile folder.')
