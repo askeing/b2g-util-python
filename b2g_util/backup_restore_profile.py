@@ -53,25 +53,20 @@ class BackupRestoreHelper(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
-        self.check_adb()
-
-    def check_adb(self):
-        # check adb
-        if not AdbWrapper.has_adb():
-            raise Exception('There is no "adb" in your environment PATH.')
+        AdbWrapper.check_adb()
 
     def stop_b2g(self, serial=None):
         logger.info('Stop B2G.')
-        output = AdbWrapper.adb_shell('stop b2g', serial=serial)
+        output, retcode = AdbWrapper.adb_shell('stop b2g', serial=serial)
 
     def start_b2g(self, serial=None):
         logger.info('Start B2G.')
-        output = AdbWrapper.adb_shell('start b2g', serial=serial)
+        output, retcode = AdbWrapper.adb_shell('start b2g', serial=serial)
 
     def backup_sdcard(self, local_dir, serial=None):
         logger.info('Backing up SD card...')
         # try to get the /sdcard folder on device
-        output = AdbWrapper.adb_shell('ls -d {0}; echo $?'.format(self._REMOTE_DIR_SDCARD), serial=serial)
+        output, retcode = AdbWrapper.adb_shell('ls -d {0}; echo $?'.format(self._REMOTE_DIR_SDCARD), serial=serial)
         output_list = [item for item in re.split(r'\n+', re.sub(r'\r+', '', output)) if item]
         ret_code = output_list[-1]
         output_list.remove(output_list[-1])
@@ -80,7 +75,9 @@ class BackupRestoreHelper(object):
             target_dir = local_dir + os.sep + self._LOCAL_DIR_SDCARD + os.sep
             os.makedirs(target_dir)
             logger.info('Backup: {0} to {1}'.format(self._REMOTE_DIR_SDCARD, target_dir))
-            if not AdbWrapper.adb_pull(self._REMOTE_DIR_SDCARD, target_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull(self._REMOTE_DIR_SDCARD, target_dir, serial=serial)
+            except:
                 logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_SDCARD, target_dir))
         else:
             logger.info(ret_msg)
@@ -91,7 +88,9 @@ class BackupRestoreHelper(object):
         target_dir = local_dir + os.sep + self._LOCAL_DIR_SDCARD
         if os.path.isdir(target_dir):
             logger.info('Restore: {0} to {1}'.format(target_dir, self._REMOTE_DIR_SDCARD))
-            if not AdbWrapper.adb_push(target_dir, self._REMOTE_DIR_SDCARD, serial=serial):
+            try:
+                AdbWrapper.adb_push(target_dir, self._REMOTE_DIR_SDCARD, serial=serial)
+            except:
                 logger.warning('Can not push files from {0} to {1}'.format(target_dir, self._REMOTE_DIR_SDCARD))
         else:
             logger.info('{0}: No such file or directory'.format(target_dir))
@@ -105,19 +104,25 @@ class BackupRestoreHelper(object):
         wifi_file = local_dir + os.sep + self._LOCAL_FILE_WIFI
         os.makedirs(wifi_dir)
         logger.info('Backing up Wifi information...')
-        if not AdbWrapper.adb_pull(self._REMOTE_FILE_WIFI, wifi_file, serial=serial):
+        try:
+            AdbWrapper.adb_pull(self._REMOTE_FILE_WIFI, wifi_file, serial=serial)
+        except:
             logger.warning('If you don\'t have root permission, you cannot backup Wifi information.')
         # Backup profile
         b2g_mozilla_dir = local_dir + os.sep + self._LOCAL_DIR_B2G + os.sep
         os.makedirs(b2g_mozilla_dir)
         logger.info('Backing up {0} to {1} ...'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
-        if not AdbWrapper.adb_pull(self._REMOTE_DIR_B2G, b2g_mozilla_dir, serial=serial):
+        try:
+            AdbWrapper.adb_pull(self._REMOTE_DIR_B2G, b2g_mozilla_dir, serial=serial)
+        except:
             logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
         # Backup data/local
         datalocal_dir = local_dir + os.sep + self._LOCAL_DIR_DATA + os.sep
         os.makedirs(datalocal_dir)
         logger.info('Backing up {0} to {1} ...'.format(self._REMOTE_DIR_DATA, datalocal_dir))
-        if not AdbWrapper.adb_pull(self._REMOTE_DIR_DATA, datalocal_dir, serial=serial):
+        try:
+            AdbWrapper.adb_pull(self._REMOTE_DIR_DATA, datalocal_dir, serial=serial)
+        except:
             logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_DATA, datalocal_dir))
         # Remove "marketplace" app and "gaiamobile.org" apps from webapps
         webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
@@ -144,13 +149,17 @@ class BackupRestoreHelper(object):
         try:
             # get remote version
             tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
-            if not AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + self._FILE_PROFILE_INI, tmp_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + self._FILE_PROFILE_INI, tmp_dir, serial=serial)
+            except:
                 logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
                 return False
             remote_config = ConfigParser.ConfigParser()
             remote_config.read(tmp_dir + os.sep + self._FILE_PROFILE_INI)
             remote_profile_path = remote_config.get('Profile0', 'Path')
-            if not AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + remote_profile_path + os.sep + self._FILE_COMPATIBILITY_INI, tmp_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + remote_profile_path + os.sep + self._FILE_COMPATIBILITY_INI, tmp_dir, serial=serial)
+            except:
                 logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
                 return False
             remote_config.read(tmp_dir + os.sep + self._FILE_COMPATIBILITY_INI)
@@ -174,7 +183,9 @@ class BackupRestoreHelper(object):
             wifi_file = local_dir + os.sep + self._LOCAL_FILE_WIFI
             if os.path.isfile(wifi_file):
                 logger.info('Restoring Wifi information...')
-                if not AdbWrapper.adb_push(wifi_file, self._REMOTE_FILE_WIFI, serial=serial):
+                try:
+                    AdbWrapper.adb_push(wifi_file, self._REMOTE_FILE_WIFI, serial=serial)
+                except:
                     logger.warning('If you don\'t have root permission, you cannot restore Wifi information.')
                 AdbWrapper.adb_shell('chown {0} {1}'.format(self._REMOTE_FILE_WIFI_OWNER, self._REMOTE_FILE_WIFI))
             # Restore profile
@@ -182,14 +193,18 @@ class BackupRestoreHelper(object):
             if os.path.isdir(b2g_mozilla_dir):
                 logger.info('Restore from {0} to {1} ...'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
                 AdbWrapper.adb_shell('rm -r {0}'.format(self._REMOTE_DIR_B2G))
-                if not AdbWrapper.adb_push(b2g_mozilla_dir, self._REMOTE_DIR_B2G, serial=serial):
+                try:
+                    AdbWrapper.adb_push(b2g_mozilla_dir, self._REMOTE_DIR_B2G, serial=serial)
+                except:
                     logger.warning('Can not push files from {0} to {1}'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
             # Restore data/local
             datalocal_dir = local_dir + os.sep + self._LOCAL_DIR_DATA
             if os.path.isdir(datalocal_dir):
                 logger.info('Restore from {0} to {1} ...'.format(datalocal_dir, self._REMOTE_DIR_DATA))
                 AdbWrapper.adb_shell('rm -r {0}'.format(self._REMOTE_DIR_DATA))
-                if not AdbWrapper.adb_push(datalocal_dir, self._REMOTE_DIR_DATA, serial=serial):
+                try:
+                    AdbWrapper.adb_push(datalocal_dir, self._REMOTE_DIR_DATA, serial=serial)
+                except:
                     logger.warning('Can not push files from {0} to {1}'.format(datalocal_dir, self._REMOTE_DIR_DATA))
             logger.info('Restore profile done.')
         else:

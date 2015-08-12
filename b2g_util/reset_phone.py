@@ -29,12 +29,7 @@ class PhoneReseter(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
-        self.check_adb()
-
-    def check_adb(self):
-        # check adb
-        if not AdbWrapper.has_adb():
-            raise Exception('There is no "adb" in your environment PATH.')
+        AdbWrapper.check_adb()
 
     def reset_phone(self, serial=None):
         # checking the adb root for backup/restore

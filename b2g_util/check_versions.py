@@ -42,23 +42,26 @@ class VersionChecker(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
-        self.check_adb()
-
-    def check_adb(self):
-        # check adb
-        if not AdbWrapper.has_adb():
-            raise Exception('There is no "adb" in your environment PATH.')
+        AdbWrapper.check_adb()
 
     def get_device_info(self, serial=None):
         try:
             tmp_dir = tempfile.mkdtemp(prefix='checkversions_')
             # pull data from device
-            if not AdbWrapper.adb_pull('/system/b2g/omni.ja', tmp_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull('/system/b2g/omni.ja', tmp_dir, serial=serial)
+            except:
                 logger.error('Error pulling Gecko file.')
-            if not AdbWrapper.adb_pull('/data/local/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial):
-                if not AdbWrapper.adb_pull('/system/b2g/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull('/data/local/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
+            except:
+                try:
+                    AdbWrapper.adb_pull('/system/b2g/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
+                except:
                     logger.error('Error pulling Gaia file.')
-            if not AdbWrapper.adb_pull('/system/b2g/application.ini', tmp_dir, serial=serial):
+            try:
+                AdbWrapper.adb_pull('/system/b2g/application.ini', tmp_dir, serial=serial)
+            except:
                 logger.error('Error pulling application.ini file.')
             # get Gaia info
             gaia_rev = 'n/a'
@@ -128,11 +131,11 @@ class VersionChecker(object):
                 build_id = 'n/a'
                 version = 'n/a'
             # get device information by getprop command
-            device_name = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.product.device', serial=serial))
-            firmware_release = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.release', serial=serial))
-            firmware_incremental = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.incremental', serial=serial))
-            firmware_date = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.date', serial=serial))
-            firmware_bootloader = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.boot.bootloader', serial=serial))
+            device_name = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.product.device', serial=serial)[0])
+            firmware_release = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.release', serial=serial)[0])
+            firmware_incremental = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.incremental', serial=serial)[0])
+            firmware_date = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.date', serial=serial)[0])
+            firmware_bootloader = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.boot.bootloader', serial=serial)[0])
             # prepare the return information
             device_info = {}
             device_info['Serial'] = serial

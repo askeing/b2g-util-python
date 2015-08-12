@@ -14,19 +14,29 @@ logger = logging.getLogger(__name__)
 
 class AdbWrapper(object):
 
-    @staticmethod
-    def has_adb():
+    @classmethod
+    def check_adb(cls):
+        logger.debug('Checking ADB...')
         if spawn.find_executable('adb') == None:
-            return False
+            raise Exception('There is no "adb" in your environment PATH.')
+        logger.debug('You have ADB.')
         return True
 
-    @staticmethod
-    def adb_devices():
+    @classmethod
+    def adb_devices(cls):
+        '''
+        Return devices as dict {device_serial: device_status, ...}.
+        Rasise Exception when return code isn't zero.
+        '''
         cmd = 'adb devices'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
         logger.debug('RET: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
+        if p.returncode is not 0:
+            raise Exception('{}'.format({'STDOUT': output, 'STDERR': stderr}))
         output = re.sub(r'\r+', '', output)
         output_list = re.split(r'\n+', output)
         # remove '', '* daemon not running. starting it now on port xxx *', and '* daemon started successfully *'
@@ -39,8 +49,12 @@ class AdbWrapper(object):
             devices[device[0]] = device[1]
         return devices
 
-    @staticmethod
-    def adb_pull(source, dest, serial=None):
+    @classmethod
+    def adb_pull(cls, source, dest, serial=None):
+        '''
+        Return stdout of command.
+        Rasise Exception when return code isn't zero.
+        '''
         if serial is None:
             cmd = 'adb pull'
         else:
@@ -53,12 +67,15 @@ class AdbWrapper(object):
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is not 0:
-            return False
-        else:
-            return True
+            raise Exception('{}'.format({'STDOUT': output, 'STDERR': stderr}))
+        return output
 
-    @staticmethod
-    def adb_push(source, dest, serial=None):
+    @classmethod
+    def adb_push(cls, source, dest, serial=None):
+        '''
+        Return stdout of command.
+        Rasise Exception when return code isn't zero.
+        '''
         if serial is None:
             cmd = 'adb push'
         else:
@@ -71,27 +88,47 @@ class AdbWrapper(object):
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is not 0:
-            return False
-        else:
-            return True
+            raise Exception('{}'.format({'STDOUT': output, 'STDERR': stderr}))
+        return output
 
-    @staticmethod
-    def adb_shell(command, serial=None):
+    @classmethod
+    def adb_shell(cls, command, serial=None):
+        '''
+        Return the stdout and return code (from device) of "adb shell" command.
+        Raise exception when return code (from adb command) isn't zero.
+        '''
         if serial is None:
             cmd = 'adb shell'
         else:
             cmd = 'adb -s %s shell' % (serial,)
-        cmd = "%s '%s'" % (cmd, command)
+        # get returncode from device
+        cmd = "%s '%s; echo $?'" % (cmd, command)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output, stderr = p.communicate()
-        logger.debug('CMD: {0}'.format(cmd))
-        logger.debug('RET: {0}'.format(output))
+        shell_ret, stderr = p.communicate()
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
-        return output
+        if p.returncode is not 0:
+            raise Exception('{}'.format({'STDOUT': shell_ret, 'STDERR': stderr}))
+        # split the stdout and retcode (from device)
+        shell_ret = re.sub(r'\s+$', '', shell_ret)
+        shell_output = re.split(r'\s+(\d+$)', shell_ret, maxsplit=1)
+        # when no stdout, set output to ''
+        if len(shell_output) == 1:
+            output = ''
+            returncode = int(shell_output[0])
+        else:
+            output = shell_output[0]
+            returncode = int(shell_output[1])
+        logger.debug('CMD: {0}'.format(cmd))
+        logger.debug('RET: {0}'.format(output))
+        logger.debug('RET CODE: {0}'.format(returncode))
+        return output, returncode
 
-    @staticmethod
-    def adb_root(serial=None):
+    @classmethod
+    def adb_root(cls, serial=None):
+        '''
+        Return True if adb already running as root.
+        '''
         if serial is None:
             cmd = 'adb root'
         else:
@@ -114,8 +151,8 @@ class AdbWrapper(object):
 
 class AdbHelper(object):
 
-    @staticmethod
-    def get_serial(serial_number):
+    @classmethod
+    def get_serial(cls, serial_number):
         '''
         Input the serial number.
         This method will check with "ANDROID_SERIAL" environmental variable, then return the serial number if the serial is avaiable.
