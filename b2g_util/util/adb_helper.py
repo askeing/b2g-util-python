@@ -24,7 +24,7 @@ class AdbWrapper(object):
     def adb_devices():
         cmd = 'adb devices'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
+        output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
         logger.debug('RET: {0}'.format(output))
         output = re.sub(r'\r+', '', output)
@@ -47,9 +47,11 @@ class AdbWrapper(object):
             cmd = 'adb -s %s pull' % (serial,)
         cmd = '%s %s %s' % (cmd, source, dest)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
+        output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
         logger.debug('RET: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is not 0:
             return False
         else:
@@ -63,9 +65,11 @@ class AdbWrapper(object):
             cmd = 'adb -s %s push' % (serial,)
         cmd = '%s %s %s' % (cmd, source, dest)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
+        output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
         logger.debug('RET: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is not 0:
             return False
         else:
@@ -79,9 +83,11 @@ class AdbWrapper(object):
             cmd = 'adb -s %s shell' % (serial,)
         cmd = "%s '%s'" % (cmd, command)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
+        output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
         logger.debug('RET: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
         return output
 
     @staticmethod
@@ -91,9 +97,11 @@ class AdbWrapper(object):
         else:
             cmd = 'adb -s %s root' % (serial,)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        output = p.communicate()[0]
+        output, stderr = p.communicate()
         logger.debug('cmd: {0}'.format(cmd))
         logger.debug('output: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is 0 and (not 'cannot' in output):
             logger.debug('adb root successed')
             logger.info('{}'.format(output))
