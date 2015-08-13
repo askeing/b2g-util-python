@@ -96,10 +96,12 @@ class FullPrivilegeResetter(object):
                             logger.info('The full privilege is already disabled.')
                             need_restart = False
                         else:
-                            # adding setting when there is no setting and need to enable certapps
-                            logger.info('Adding setting of pref.js file...')
-                            fw.write('user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
+                            if need_restart:
+                                # adding setting when there is no setting and need to enable certapps
+                                logger.info('Adding setting of pref.js file...')
+                                fw.write('user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
             if need_restart:
+                B2GHelper.stop_b2g(serial=serial)
                 try:
                     logger.info('Pushing prefs.js file...')
                     AdbWrapper.adb_push(dest_file, device_src_file, serial=serial)
@@ -107,7 +109,6 @@ class FullPrivilegeResetter(object):
                     raise Exception('Error pushing prefs.js file.')
         finally:
             if need_restart:
-                B2GHelper.stop_b2g(serial=serial)
                 B2GHelper.start_b2g(serial=serial)
             shutil.rmtree(tmp_dir)
 
