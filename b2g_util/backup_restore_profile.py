@@ -15,6 +15,7 @@ from datetime import datetime
 from argparse import ArgumentDefaultsHelpFormatter
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
+from util.b2g_helper import B2GHelper
 
 
 logger = logging.getLogger(__name__)
@@ -55,14 +56,6 @@ class BackupRestoreHelper(object):
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
         AdbWrapper.check_adb()
-
-    def stop_b2g(self, serial=None):
-        logger.info('Stop B2G.')
-        output, retcode = AdbWrapper.adb_shell('stop b2g', serial=serial)
-
-    def start_b2g(self, serial=None):
-        logger.info('Start B2G.')
-        output, retcode = AdbWrapper.adb_shell('start b2g', serial=serial)
 
     def backup_sdcard(self, local_dir, serial=None):
         logger.info('Backing up SD card...')
@@ -239,7 +232,7 @@ class BackupRestoreHelper(object):
                 # Create temp folder
                 tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
                 # Stop B2G
-                self.stop_b2g(serial=device_serial)
+                B2GHelper.stop_b2g(serial=device_serial)
                 # Backup User Profile
                 self.backup_profile(local_dir=tmp_dir, serial=device_serial)
                 # Backup SDCard
@@ -253,7 +246,7 @@ class BackupRestoreHelper(object):
                 shutil.copytree(tmp_dir, self.args.profile_dir)
                 # Start B2G
                 if not self.args.no_reboot:
-                    self.start_b2g(serial=device_serial)
+                    B2GHelper.start_b2g(serial=device_serial)
             finally:
                 logger.debug('Removing [{0}] folder...'.format(tmp_dir))
                 shutil.rmtree(tmp_dir)
@@ -263,7 +256,7 @@ class BackupRestoreHelper(object):
             # Checking the Version of Profile
             if self.check_profile_version(local_dir=self.args.profile_dir, serial=device_serial):
                 # Stop B2G
-                self.stop_b2g(serial=device_serial)
+                B2GHelper.stop_b2g(serial=device_serial)
                 # Restore User Profile
                 self.restore_profile(local_dir=self.args.profile_dir, serial=device_serial)
                 # Restore SDCard
@@ -271,7 +264,7 @@ class BackupRestoreHelper(object):
                     self.restore_sdcard(local_dir=self.args.profile_dir, serial=device_serial)
                 # Start B2G
                 if not self.args.no_reboot:
-                    self.start_b2g(serial=device_serial)
+                    B2GHelper.start_b2g(serial=device_serial)
             else:
                 logger.warning('The version on device is smaller than backup\'s version.')
 
