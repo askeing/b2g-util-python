@@ -74,6 +74,31 @@ b2g_check_versions
                             (default: False)
 
 
+b2g_enable_certapps_devtools
+++++++++++++++++++++++++++++
+
+.. code-block:: bash
+
+    usage: b2g_enable_certapps_devtools [-h] [-s SERIAL] [--disable] [-v]
+
+    Enable Certified Apps Debugging.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -s SERIAL, --serial SERIAL
+                            Directs command to the device or emulator with the
+                            given serial number. Overrides ANDROID_SERIAL
+                            environment variable. (default: None)
+      --disable             Disable the privileges. (default: False)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)
+
+    Please enable "ADB and Devtools" of device.
+    Ref:
+    - https://developer.mozilla.org/en-US/docs/Tools/WebIDE
+    - https://developer.mozilla.org/en-US/docs/Tools/WebIDE/Running_and_debugging_apps#Debugging_apps
+
+
 b2g_get_crashreports
 ++++++++++++++++++++
 
