@@ -1,6 +1,13 @@
 Release History
 ---------------
 
+0.0.5 (2015-08-13)
+++++++++++++++++++
+
+**bugfixes**
+
+- some command will stop device with no returncode. e.g. adb shell reboot recovery.
+
 0.0.4 (2015-08-12)
 ++++++++++++++++++
 **Features and Improvements**

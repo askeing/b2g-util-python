@@ -105,8 +105,10 @@ class AdbWrapper(object):
         cmd = "%s '%s; echo $?'" % (cmd, command)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         shell_ret, stderr = p.communicate()
+        logger.debug('CMD: {0}'.format(cmd))
+        logger.debug('RAW_RET: {0}'.format(shell_ret))
         if stderr:
-            logger.debug('ERR: {0}'.format(stderr))
+            logger.debug('RAW_ERR: {0}'.format(stderr))
         if p.returncode is not 0:
             raise Exception('{}'.format({'STDOUT': shell_ret, 'STDERR': stderr}))
         # split the stdout and retcode (from device)
@@ -114,12 +116,20 @@ class AdbWrapper(object):
         shell_output = re.split(r'\s+(\d+$)', shell_ret, maxsplit=1)
         # when no stdout, set output to ''
         if len(shell_output) == 1:
+            # only returncode, no stdout
             output = ''
-            returncode = int(shell_output[0])
+            try:
+                returncode = int(shell_output[0])
+            except:
+                # some command will stop device with no returncode. e.g. adb shell reboot recovery
+                returncode = 0
         else:
+            # stdout with returncode
             output = shell_output[0]
-            returncode = int(shell_output[1])
-        logger.debug('CMD: {0}'.format(cmd))
+            try:
+                returncode = int(shell_output[1])
+            except:
+                returncode = 0
         logger.debug('RET: {0}'.format(output))
         logger.debug('RET CODE: {0}'.format(returncode))
         return output, returncode
