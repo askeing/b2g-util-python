@@ -1,6 +1,20 @@
 Release History
 ---------------
 
+0.0.6 (2015-08-14)
+++++++++++++++++++
+
+**Features and Improvements**
+
+- Use B2GHelper in b2g_backup_restore_profile.
+- Refactoring the check_versions.
+- Refactoring the backup_restore_profile
+
+**bugfixes**
+
+- Skip adding setting of enable_certapps_devtools when it doesn't need to restart.
+
+
 0.0.5 (2015-08-13)
 ++++++++++++++++++
 
