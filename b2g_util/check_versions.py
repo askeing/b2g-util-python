@@ -66,7 +66,7 @@ class VersionChecker(object):
             # get Gaia info
             gaia_rev = 'n/a'
             gaia_date = 'n/a'
-            application_zip_file = tmp_dir + os.sep + 'application.zip'
+            application_zip_file = os.path.join(tmp_dir, 'application.zip')
             if os.path.isfile(application_zip_file):
                 f = open(application_zip_file, 'rb')
                 z = zipfile.ZipFile(f)
@@ -74,7 +74,7 @@ class VersionChecker(object):
                 f.close()
             else:
                 logger.warning('Can not find application.zip file.')
-            gaiacommit_file = tmp_dir + os.sep + 'resources/gaia_commit.txt'
+            gaiacommit_file = os.path.join(tmp_dir, 'resources/gaia_commit.txt')
             if os.path.isfile(gaiacommit_file):
                 f = open(gaiacommit_file, "r")
                 gaia_rev = re.sub(r'\n+', '', f.readline())
@@ -85,10 +85,10 @@ class VersionChecker(object):
                 logger.warning('Can not get gaia_commit.txt file from application.zip file.')
             # deoptimize omni.ja for Gecko info
             gecko_rev = 'n/a'
-            if os.path.isfile(tmp_dir + os.sep + 'omni.ja'):
-                deopt_dir = tmp_dir + os.sep + 'deopt'
-                deopt_file = deopt_dir + os.sep + 'omni.ja'
-                deopt_exec = tmp_dir + os.sep + 'optimizejars.py'
+            if os.path.isfile(os.path.join(tmp_dir, 'omni.ja')):
+                deopt_dir = os.path.join(tmp_dir, 'deopt')
+                deopt_file = os.path.join(deopt_dir, 'omni.ja')
+                deopt_exec = os.path.join(tmp_dir, 'optimizejars.py')
                 os.makedirs(deopt_dir)
                 # TODO rewrite optimizejars.py if possible
                 current_dir = cur = os.path.dirname(os.path.abspath(__file__))
@@ -107,7 +107,7 @@ class VersionChecker(object):
                     logger.warning('Can not deoptimize omni.ja file.')
                     gecko_rev = 'n/a'
                 # get Gecko info from buildconfig.html file
-                buildconfig_file = tmp_dir + os.sep + 'chrome/toolkit/content/global/buildconfig.html'
+                buildconfig_file = os.path.join(tmp_dir, 'chrome/toolkit/content/global/buildconfig.html')
                 if os.path.isfile(buildconfig_file):
                     for line in open(buildconfig_file, "r"):
                         if re.search(r'Built from', line):
@@ -119,8 +119,8 @@ class VersionChecker(object):
             else:
                 print 'Can not find omni.ja file.'
             # get Gecko version, and B2G BuildID from application.ini file
-            if os.path.isfile(tmp_dir + os.sep + 'application.ini'):
-                for line in open(tmp_dir + os.sep + 'application.ini', "r"):
+            if os.path.isfile(os.path.join(tmp_dir, 'application.ini')):
+                for line in open(os.path.join(tmp_dir, 'application.ini'), "r"):
                     if re.search(r'^\s*BuildID', line):
                         ret = re.findall(r'.*?=(.*)', line)
                         build_id = ret[0]
