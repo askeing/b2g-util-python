@@ -68,18 +68,16 @@ class VersionChecker(object):
             gaia_date = 'n/a'
             application_zip_file = os.path.join(tmp_dir, 'application.zip')
             if os.path.isfile(application_zip_file):
-                f = open(application_zip_file, 'rb')
-                z = zipfile.ZipFile(f)
-                z.extract('resources/gaia_commit.txt', tmp_dir)
-                f.close()
+                with open(application_zip_file, 'rb') as f:
+                    z = zipfile.ZipFile(f)
+                    z.extract('resources/gaia_commit.txt', tmp_dir)
             else:
                 logger.warning('Can not find application.zip file.')
             gaiacommit_file = os.path.join(tmp_dir, 'resources/gaia_commit.txt')
             if os.path.isfile(gaiacommit_file):
-                f = open(gaiacommit_file, "r")
-                gaia_rev = re.sub(r'\n+', '', f.readline())
-                gaia_date_sec_from_epoch = re.sub(r'\n+', '', f.readline())
-                f.close()
+                with open(gaiacommit_file, "r") as f:
+                    gaia_rev = re.sub(r'\n+', '', f.readline())
+                    gaia_date_sec_from_epoch = re.sub(r'\n+', '', f.readline())
                 gaia_date = datetime.utcfromtimestamp(int(gaia_date_sec_from_epoch)).strftime('%Y-%m-%d %H:%M:%S')
             else:
                 logger.warning('Can not get gaia_commit.txt file from application.zip file.')
@@ -99,10 +97,9 @@ class VersionChecker(object):
                 output = p.communicate()[0]
                 # unzip omni.ja to get Gecko info
                 if os.path.isfile(deopt_file):
-                    f = open(deopt_file, 'rb')
-                    z = zipfile.ZipFile(f)
-                    z.extract('chrome/toolkit/content/global/buildconfig.html', tmp_dir)
-                    f.close()
+                    with open(deopt_file, 'rb') as f:
+                        z = zipfile.ZipFile(f)
+                        z.extract('chrome/toolkit/content/global/buildconfig.html', tmp_dir)
                 else:
                     logger.warning('Can not deoptimize omni.ja file.')
                     gecko_rev = 'n/a'
