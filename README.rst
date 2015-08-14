@@ -13,7 +13,9 @@ To install **b2g_util**, simply:
 
 .. code-block:: bash
 
-    $ pip install b2g_util
+    $ pip install --upgrade b2g_util
+
+You might have to add **sudo** for getting more permission when install it into your system.
 
 
 Tools Usages
@@ -29,7 +31,8 @@ b2g_backup_restore_profile
 .. code-block:: bash
 
     usage: b2g_backup_restore_profile [-h] [-s SERIAL] (-b | -r) [--sdcard]
-                                      [--no-reboot] [-p PROFILE_DIR] [-v]
+                                      [--no-reboot] [-p PROFILE_DIR]
+                                      [--skip-version-check] [-v]
 
     Workaround for backing up and restoring Firefox OS profiles. (BETA)
 
@@ -46,6 +49,8 @@ b2g_backup_restore_profile
                             False)
       -p PROFILE_DIR, --profile-dir PROFILE_DIR
                             Specify the profile folder. (default: mozilla-profile)
+      --skip-version-check  Turn off version check between backup profile and
+                            device. (default: False)
       -v, --verbose         Turn on verbose output, with all the debug logger.
                             (default: False)
 
