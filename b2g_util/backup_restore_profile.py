@@ -46,6 +46,7 @@ class BackupRestoreHelper(object):
         self.arg_parser.add_argument('--sdcard', action='store_true', dest='sdcard', default=False, help='Also backup/restore SD card.')
         self.arg_parser.add_argument('--no-reboot', action='store_true', dest='no_reboot', default=False, help='Do not reboot B2G after backup/restore.')
         self.arg_parser.add_argument('-p', '--profile-dir', action='store', dest='profile_dir', default='mozilla-profile', help='Specify the profile folder.')
+        self.arg_parser.add_argument('--skip-version-check', action='store_true', dest='skip_version_check', default=False, help='Turn off version check between backup profile and device.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
         self.args = self.arg_parser.parse_args()
         # setup the logging config
@@ -72,7 +73,7 @@ class BackupRestoreHelper(object):
             try:
                 AdbWrapper.adb_pull(self._REMOTE_DIR_SDCARD, target_dir, serial=serial)
             except:
-                logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_SDCARD, target_dir))
+                logger.error('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_SDCARD, target_dir))
         else:
             logger.info(ret_msg)
         logger.info('Backup SD card done.')
@@ -85,7 +86,7 @@ class BackupRestoreHelper(object):
             try:
                 AdbWrapper.adb_push(target_dir, self._REMOTE_DIR_SDCARD, serial=serial)
             except:
-                logger.warning('Can not push files from {0} to {1}'.format(target_dir, self._REMOTE_DIR_SDCARD))
+                logger.error('Can not push files from {0} to {1}'.format(target_dir, self._REMOTE_DIR_SDCARD))
         else:
             logger.info('{0}: No such file or directory'.format(target_dir))
             return
@@ -101,7 +102,7 @@ class BackupRestoreHelper(object):
         try:
             AdbWrapper.adb_pull(self._REMOTE_FILE_WIFI, wifi_file, serial=serial)
         except:
-            logger.warning('If you don\'t have root permission, you cannot backup Wifi information.')
+            logger.error('If you don\'t have root permission, you cannot backup Wifi information.')
         # Backup profile
         b2g_mozilla_dir = os.path.join(local_dir, self._LOCAL_DIR_B2G)
         os.makedirs(b2g_mozilla_dir)
@@ -109,7 +110,7 @@ class BackupRestoreHelper(object):
         try:
             AdbWrapper.adb_pull(self._REMOTE_DIR_B2G, b2g_mozilla_dir, serial=serial)
         except:
-            logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
+            logger.error('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
         # Backup data/local
         datalocal_dir = os.path.join(local_dir, self._LOCAL_DIR_DATA)
         os.makedirs(datalocal_dir)
@@ -117,7 +118,7 @@ class BackupRestoreHelper(object):
         try:
             AdbWrapper.adb_pull(self._REMOTE_DIR_DATA, datalocal_dir, serial=serial)
         except:
-            logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_DATA, datalocal_dir))
+            logger.error('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_DATA, datalocal_dir))
         # Remove "marketplace" app and "gaiamobile.org" apps from webapps
         webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
         for root, dirs, files in os.walk(webapps_dir):
@@ -129,6 +130,9 @@ class BackupRestoreHelper(object):
         logger.info('Backup profile done.')
 
     def check_profile_version(self, local_dir, serial=None):
+        if self.args.skip_version_check:
+            logger.info('Skip version check.')
+            return True
         logger.info('Checking profile...')
         # get local version
         if os.path.isdir(local_dir):
@@ -166,11 +170,11 @@ class BackupRestoreHelper(object):
             # compare
             version_of_backup_float = float(version_of_backup.split('.')[0])
             version_of_device_float = float(version_of_device.split('.')[0])
-            logger.debug('Local Ver: {}, Remote Ver: {}'.format(version_of_backup_float, version_of_device_float))
-            if version_of_device_float >= version_of_backup_float:
+            if version_of_backup_float <= version_of_device_float:
+                logger.info('Backup Profile {} <= Device Profile {}'.format(version_of_backup_float, version_of_device_float))
                 return True
             else:
-                return False
+                raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
         finally:
             logger.debug('Removing [{0}] folder...'.format(tmp_dir))
             shutil.rmtree(tmp_dir)
@@ -186,7 +190,7 @@ class BackupRestoreHelper(object):
                 try:
                     AdbWrapper.adb_push(wifi_file, self._REMOTE_FILE_WIFI, serial=serial)
                 except:
-                    logger.warning('If you don\'t have root permission, you cannot restore Wifi information.')
+                    logger.error('If you don\'t have root permission, you cannot restore Wifi information.')
                 AdbWrapper.adb_shell('chown {0} {1}'.format(self._REMOTE_FILE_WIFI_OWNER, self._REMOTE_FILE_WIFI))
             # Restore profile
             b2g_mozilla_dir = os.path.join(local_dir, self._LOCAL_DIR_B2G)
@@ -196,7 +200,7 @@ class BackupRestoreHelper(object):
                 try:
                     AdbWrapper.adb_push(b2g_mozilla_dir, self._REMOTE_DIR_B2G, serial=serial)
                 except:
-                    logger.warning('Can not push files from {0} to {1}'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
+                    logger.error('Can not push files from {0} to {1}'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
             # Restore data/local
             datalocal_dir = os.path.join(local_dir, self._LOCAL_DIR_DATA)
             if os.path.isdir(datalocal_dir):
@@ -205,7 +209,7 @@ class BackupRestoreHelper(object):
                 try:
                     AdbWrapper.adb_push(datalocal_dir, self._REMOTE_DIR_DATA, serial=serial)
                 except:
-                    logger.warning('Can not push files from {0} to {1}'.format(datalocal_dir, self._REMOTE_DIR_DATA))
+                    logger.error('Can not push files from {0} to {1}'.format(datalocal_dir, self._REMOTE_DIR_DATA))
             logger.info('Restore profile done.')
         else:
             logger.info('{0}: No such file or directory'.format(local_dir))
@@ -231,13 +235,17 @@ class BackupRestoreHelper(object):
         if not AdbWrapper.adb_root(serial=device_serial):
             raise Exception('No root permission for backup and resotre.')
 
+        if device_serial:
+            logger.info('Target device [{0}]'.format(device_serial))
         # Backup
         if self.args.backup:
             try:
-                logger.info('Target device [{0}]'.format(device_serial))
                 # Create temp folder
                 tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
                 logger.debug('TEMP Foler: {}'.format(tmp_dir))
+                # check the local profile folder
+                if os.path.isdir(self.args.profile_dir):
+                    raise Exception('[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.args.profile_dir)))
                 # Stop B2G
                 B2GHelper.stop_b2g(serial=device_serial)
                 # Backup User Profile
@@ -247,7 +255,7 @@ class BackupRestoreHelper(object):
                     self.backup_sdcard(local_dir=tmp_dir, serial=device_serial)
                 # Copy backup files from temp folder to target folder
                 if os.path.isdir(self.args.profile_dir):
-                    logger.warning('Removing [{0}] folder...'.format(self.args.profile_dir))
+                    logger.error('Removing [{0}] folder...'.format(os.path.abspath(self.args.profile_dir)))
                     shutil.rmtree(self.args.profile_dir)
                 logger.info('Copy profile from [{0}] to [{1}].'.format(tmp_dir, self.args.profile_dir))
                 shutil.copytree(tmp_dir, self.args.profile_dir)
@@ -259,7 +267,6 @@ class BackupRestoreHelper(object):
                 shutil.rmtree(tmp_dir)
         # Restore
         elif self.args.restore:
-            logger.info('Target device [{0}]'.format(device_serial))
             # Checking the Version of Profile
             if self.check_profile_version(local_dir=self.args.profile_dir, serial=device_serial):
                 # Stop B2G
@@ -273,7 +280,7 @@ class BackupRestoreHelper(object):
                 if not self.args.no_reboot:
                     B2GHelper.start_b2g(serial=device_serial)
             else:
-                logger.warning('The version on device is smaller than backup\'s version.')
+                logger.error('The version on device is smaller than backup\'s version.')
 
 
 def main():
