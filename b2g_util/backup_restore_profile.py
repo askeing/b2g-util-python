@@ -144,7 +144,7 @@ class BackupRestoreHelper(object):
             version_of_backup = local_config.get('Compatibility', 'LastVersion')
             logger.info('The Version of Backup Profile: {}'.format(version_of_backup))
         else:
-            return False
+            raise Exception('Can not load profile from [{}]'.format(os.path.abspath(local_dir)))
         try:
             # get remote version
             tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
@@ -152,8 +152,7 @@ class BackupRestoreHelper(object):
             try:
                 AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, self._FILE_PROFILE_INI), tmp_dir, serial=serial)
             except:
-                logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
-                return False
+                raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
             remote_config = ConfigParser.ConfigParser()
             remote_config.read(os.path.join(tmp_dir, self._FILE_PROFILE_INI))
             logger.debug('Remote Profile to get path: {}'.format(remote_config._sections))
@@ -161,8 +160,7 @@ class BackupRestoreHelper(object):
             try:
                 AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, remote_profile_path, self._FILE_COMPATIBILITY_INI), tmp_dir, serial=serial)
             except:
-                logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
-                return False
+                raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
             remote_config.read(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI))
             logger.debug('Remote Profile: {}'.format(remote_config._sections))
             version_of_device = remote_config.get('Compatibility', 'LastVersion')
