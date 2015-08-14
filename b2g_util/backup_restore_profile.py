@@ -66,7 +66,7 @@ class BackupRestoreHelper(object):
         output_list.remove(output_list[-1])
         ret_msg = '\n'.join(output_list)
         if ret_code == '0':
-            target_dir = local_dir + os.sep + self._LOCAL_DIR_SDCARD + os.sep
+            target_dir = os.path.join(local_dir, self._LOCAL_DIR_SDCARD)
             os.makedirs(target_dir)
             logger.info('Backup: {0} to {1}'.format(self._REMOTE_DIR_SDCARD, target_dir))
             try:
@@ -79,7 +79,7 @@ class BackupRestoreHelper(object):
 
     def restore_sdcard(self, local_dir, serial=None):
         logger.info('Restoring SD card...')
-        target_dir = local_dir + os.sep + self._LOCAL_DIR_SDCARD
+        target_dir = os.path.join(local_dir, self._LOCAL_DIR_SDCARD)
         if os.path.isdir(target_dir):
             logger.info('Restore: {0} to {1}'.format(target_dir, self._REMOTE_DIR_SDCARD))
             try:
@@ -94,8 +94,8 @@ class BackupRestoreHelper(object):
     def backup_profile(self, local_dir, serial=None):
         logger.info('Backing up profile...')
         # Backup Wifi
-        wifi_dir = local_dir + os.sep + self._LOCAL_DIR_WIFI + os.sep
-        wifi_file = local_dir + os.sep + self._LOCAL_FILE_WIFI
+        wifi_dir = os.path.join(local_dir, self._LOCAL_DIR_WIFI)
+        wifi_file = os.path.join(local_dir, self._LOCAL_FILE_WIFI)
         os.makedirs(wifi_dir)
         logger.info('Backing up Wifi information...')
         try:
@@ -103,7 +103,7 @@ class BackupRestoreHelper(object):
         except:
             logger.warning('If you don\'t have root permission, you cannot backup Wifi information.')
         # Backup profile
-        b2g_mozilla_dir = local_dir + os.sep + self._LOCAL_DIR_B2G + os.sep
+        b2g_mozilla_dir = os.path.join(local_dir, self._LOCAL_DIR_B2G)
         os.makedirs(b2g_mozilla_dir)
         logger.info('Backing up {0} to {1} ...'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
         try:
@@ -111,7 +111,7 @@ class BackupRestoreHelper(object):
         except:
             logger.warning('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_B2G, b2g_mozilla_dir))
         # Backup data/local
-        datalocal_dir = local_dir + os.sep + self._LOCAL_DIR_DATA + os.sep
+        datalocal_dir = os.path.join(local_dir, self._LOCAL_DIR_DATA)
         os.makedirs(datalocal_dir)
         logger.info('Backing up {0} to {1} ...'.format(self._REMOTE_DIR_DATA, datalocal_dir))
         try:
@@ -133,9 +133,10 @@ class BackupRestoreHelper(object):
         # get local version
         if os.path.isdir(local_dir):
             local_config = ConfigParser.ConfigParser()
-            local_config.read(local_dir + os.sep + self._LOCAL_DIR_B2G + os.sep + self._FILE_PROFILE_INI)
+            local_config.read(os.path.join(local_dir, self._LOCAL_DIR_B2G, self._FILE_PROFILE_INI))
             local_profile_path = local_config.get('Profile0', 'Path')
-            local_config.read(local_dir + os.sep + self._LOCAL_DIR_B2G + os.sep + local_profile_path + os.sep + self._FILE_COMPATIBILITY_INI)
+            local_config.read(os.path.join(local_dir, self._LOCAL_DIR_B2G, local_profile_path, self._FILE_COMPATIBILITY_INI))
+            logger.debug('Local Profile: {}'.format(local_config._sections))
             version_of_backup = local_config.get('Compatibility', 'LastVersion')
             logger.info('The Version of Backup Profile: {}'.format(version_of_backup))
         else:
@@ -143,25 +144,29 @@ class BackupRestoreHelper(object):
         try:
             # get remote version
             tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
+            logger.debug('TEMP Folder for check profile: {}'.format(tmp_dir))
             try:
-                AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + self._FILE_PROFILE_INI, tmp_dir, serial=serial)
+                AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, self._FILE_PROFILE_INI), tmp_dir, serial=serial)
             except:
                 logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
                 return False
             remote_config = ConfigParser.ConfigParser()
-            remote_config.read(tmp_dir + os.sep + self._FILE_PROFILE_INI)
+            remote_config.read(os.path.join(tmp_dir, self._FILE_PROFILE_INI))
+            logger.debug('Remote Profile to get path: {}'.format(remote_config._sections))
             remote_profile_path = remote_config.get('Profile0', 'Path')
             try:
-                AdbWrapper.adb_pull(self._REMOTE_DIR_B2G + os.sep + remote_profile_path + os.sep + self._FILE_COMPATIBILITY_INI, tmp_dir, serial=serial)
+                AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, remote_profile_path, self._FILE_COMPATIBILITY_INI), tmp_dir, serial=serial)
             except:
                 logger.warning('Can not pull {2} from {0} to {1}'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
                 return False
-            remote_config.read(tmp_dir + os.sep + self._FILE_COMPATIBILITY_INI)
+            remote_config.read(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI))
+            logger.debug('Remote Profile: {}'.format(remote_config._sections))
             version_of_device = remote_config.get('Compatibility', 'LastVersion')
             logger.info('The Version of Device Profile: {}'.format(version_of_device))
             # compare
             version_of_backup_float = float(version_of_backup.split('.')[0])
             version_of_device_float = float(version_of_device.split('.')[0])
+            logger.debug('Local Ver: {}, Remote Ver: {}'.format(version_of_backup_float, version_of_device_float))
             if version_of_device_float >= version_of_backup_float:
                 return True
             else:
@@ -169,12 +174,13 @@ class BackupRestoreHelper(object):
         finally:
             logger.debug('Removing [{0}] folder...'.format(tmp_dir))
             shutil.rmtree(tmp_dir)
+            logger.debug('TEMP Folder for check profile removed: {}'.format(tmp_dir))
 
     def restore_profile(self, local_dir, serial=None):
         logger.info('Restoring profile...')
         if os.path.isdir(local_dir):
             # Restore Wifi
-            wifi_file = local_dir + os.sep + self._LOCAL_FILE_WIFI
+            wifi_file = os.path.join(local_dir, self._LOCAL_FILE_WIFI)
             if os.path.isfile(wifi_file):
                 logger.info('Restoring Wifi information...')
                 try:
@@ -183,7 +189,7 @@ class BackupRestoreHelper(object):
                     logger.warning('If you don\'t have root permission, you cannot restore Wifi information.')
                 AdbWrapper.adb_shell('chown {0} {1}'.format(self._REMOTE_FILE_WIFI_OWNER, self._REMOTE_FILE_WIFI))
             # Restore profile
-            b2g_mozilla_dir = local_dir + os.sep + self._LOCAL_DIR_B2G
+            b2g_mozilla_dir = os.path.join(local_dir, self._LOCAL_DIR_B2G)
             if os.path.isdir(b2g_mozilla_dir):
                 logger.info('Restore from {0} to {1} ...'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
                 AdbWrapper.adb_shell('rm -r {0}'.format(self._REMOTE_DIR_B2G))
@@ -192,7 +198,7 @@ class BackupRestoreHelper(object):
                 except:
                     logger.warning('Can not push files from {0} to {1}'.format(b2g_mozilla_dir, self._REMOTE_DIR_B2G))
             # Restore data/local
-            datalocal_dir = local_dir + os.sep + self._LOCAL_DIR_DATA
+            datalocal_dir = os.path.join(local_dir, self._LOCAL_DIR_DATA)
             if os.path.isdir(datalocal_dir):
                 logger.info('Restore from {0} to {1} ...'.format(datalocal_dir, self._REMOTE_DIR_DATA))
                 AdbWrapper.adb_shell('rm -r {0}'.format(self._REMOTE_DIR_DATA))
@@ -231,6 +237,7 @@ class BackupRestoreHelper(object):
                 logger.info('Target device [{0}]'.format(device_serial))
                 # Create temp folder
                 tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
+                logger.debug('TEMP Foler: {}'.format(tmp_dir))
                 # Stop B2G
                 B2GHelper.stop_b2g(serial=device_serial)
                 # Backup User Profile
