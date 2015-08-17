@@ -43,6 +43,8 @@ class FullPrivilegeResetter(object):
                                      Turn on verbose output, with all the debug logger.
                                      (default: %(default)s)
                                      '''))
+
+    def prepare(self):
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -113,6 +115,7 @@ class FullPrivilegeResetter(object):
             shutil.rmtree(tmp_dir)
 
     def run(self):
+        self.prepare()
         devices = AdbWrapper.adb_devices()
 
         is_enable = not self.args.disable

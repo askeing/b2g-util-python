@@ -22,6 +22,8 @@ class CrashReporter(object):
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
         self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+
+    def prepare(self):
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -50,6 +52,7 @@ class CrashReporter(object):
                 print(submitted_url)
 
     def run(self):
+        self.prepare()
         devices = AdbWrapper.adb_devices()
 
         if len(devices) == 0:

@@ -48,6 +48,8 @@ class BackupRestoreHelper(object):
         self.arg_parser.add_argument('-p', '--profile-dir', action='store', dest='profile_dir', default='mozilla-profile', help='Specify the profile folder.')
         self.arg_parser.add_argument('--skip-version-check', action='store_true', dest='skip_version_check', default=False, help='Turn off version check between backup profile and device.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+
+    def prepare(self):
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -129,6 +131,15 @@ class BackupRestoreHelper(object):
                 shutil.rmtree(root)
         logger.info('Backup profile done.')
 
+    def compare_version(self, version_of_backup, version_of_device):
+        version_of_backup_float = float(version_of_backup.split('.')[0])
+        version_of_device_float = float(version_of_device.split('.')[0])
+        if version_of_backup_float <= version_of_device_float:
+            logger.info('Backup Profile {} <= Device Profile {}'.format(version_of_backup_float, version_of_device_float))
+            return True
+        else:
+            raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
+
     def check_profile_version(self, local_dir, serial=None):
         if self.args.skip_version_check:
             logger.info('Skip version check.')
@@ -166,13 +177,7 @@ class BackupRestoreHelper(object):
             version_of_device = remote_config.get('Compatibility', 'LastVersion')
             logger.info('The Version of Device Profile: {}'.format(version_of_device))
             # compare
-            version_of_backup_float = float(version_of_backup.split('.')[0])
-            version_of_device_float = float(version_of_device.split('.')[0])
-            if version_of_backup_float <= version_of_device_float:
-                logger.info('Backup Profile {} <= Device Profile {}'.format(version_of_backup_float, version_of_device_float))
-                return True
-            else:
-                raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
+            return self.compare_version(version_of_backup, version_of_device)
         finally:
             logger.debug('Removing [{0}] folder...'.format(tmp_dir))
             shutil.rmtree(tmp_dir)
@@ -214,6 +219,7 @@ class BackupRestoreHelper(object):
             return
 
     def run(self):
+        self.prepare()
         # get the device's serial number
         devices = AdbWrapper.adb_devices()
         if len(devices) == 0:

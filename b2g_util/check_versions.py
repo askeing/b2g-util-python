@@ -34,6 +34,8 @@ class VersionChecker(object):
         self.arg_parser.add_argument('--log-text', action='store', dest='log_text', default=None, help='Text ouput.')
         self.arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON output.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+
+    def prepare(self):
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -207,6 +209,7 @@ class VersionChecker(object):
                 json.dump(result, outfile, indent=4)
 
     def run(self):
+        self.prepare()
         devices = AdbWrapper.adb_devices()
         is_no_color = self.args.no_color
         if 'NO_COLOR' in os.environ:
