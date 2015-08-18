@@ -140,6 +140,27 @@ class BackupRestoreHelper(object):
         else:
             raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
 
+    def get_profile_path(self, ini_file_path):
+        ini_config = ConfigParser.ConfigParser()
+        try:
+            ini_config.read(ini_file_path)
+            profile_path = ini_config.get('Profile0', 'Path')
+            logger.debug('Load [{}]: {}'.format(ini_file_path, ini_config._sections))
+            return profile_path
+        except:
+            raise Exception('Can not get profile path from [{}], content: {}'.format(ini_file_path, ini_config._sections))
+
+    def get_version_from_profile(self, ini_file_path):
+        ini_config = ConfigParser.ConfigParser()
+        try:
+            ini_config.read(ini_file_path)
+            last_version = ini_config.get('Compatibility', 'LastVersion')
+            logger.debug('Load [{}]: {}'.format(ini_file_path, ini_config._sections))
+            logger.info('The LastVersion of [{}] is [{}]'.format(ini_file_path, last_version))
+            return last_version
+        except:
+            raise Exception('Can not get last version from [{}], content: {}'.format(ini_file_path, ini_config._sections))
+
     def check_profile_version(self, local_dir, serial=None):
         if self.args.skip_version_check:
             logger.info('Skip version check.')
@@ -147,13 +168,8 @@ class BackupRestoreHelper(object):
         logger.info('Checking profile...')
         # get local version
         if os.path.isdir(local_dir):
-            local_config = ConfigParser.ConfigParser()
-            local_config.read(os.path.join(local_dir, self._LOCAL_DIR_B2G, self._FILE_PROFILE_INI))
-            local_profile_path = local_config.get('Profile0', 'Path')
-            local_config.read(os.path.join(local_dir, self._LOCAL_DIR_B2G, local_profile_path, self._FILE_COMPATIBILITY_INI))
-            logger.debug('Local Profile: {}'.format(local_config._sections))
-            version_of_backup = local_config.get('Compatibility', 'LastVersion')
-            logger.info('The Version of Backup Profile: {}'.format(version_of_backup))
+            local_profile_path = self.get_profile_path(os.path.join(local_dir, self._LOCAL_DIR_B2G, self._FILE_PROFILE_INI))
+            version_of_backup = self.get_version_from_profile(os.path.join(local_dir, self._LOCAL_DIR_B2G, local_profile_path, self._FILE_COMPATIBILITY_INI))
         else:
             raise Exception('Can not load profile from [{}]'.format(os.path.abspath(local_dir)))
         try:
@@ -164,18 +180,12 @@ class BackupRestoreHelper(object):
                 AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, self._FILE_PROFILE_INI), tmp_dir, serial=serial)
             except:
                 raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
-            remote_config = ConfigParser.ConfigParser()
-            remote_config.read(os.path.join(tmp_dir, self._FILE_PROFILE_INI))
-            logger.debug('Remote Profile to get path: {}'.format(remote_config._sections))
-            remote_profile_path = remote_config.get('Profile0', 'Path')
+            remote_profile_path = self.get_profile_path(os.path.join(tmp_dir, self._FILE_PROFILE_INI))
             try:
                 AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, remote_profile_path, self._FILE_COMPATIBILITY_INI), tmp_dir, serial=serial)
             except:
                 raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
-            remote_config.read(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI))
-            logger.debug('Remote Profile: {}'.format(remote_config._sections))
-            version_of_device = remote_config.get('Compatibility', 'LastVersion')
-            logger.info('The Version of Device Profile: {}'.format(version_of_device))
+            version_of_device = self.get_version_from_profile(os.path.join(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI)))
             # compare
             return self.compare_version(version_of_backup, version_of_device)
         finally:

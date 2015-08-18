@@ -16,5 +16,7 @@ dev-env: $(VENV)/bin/python
 
 .PHONY: test
 test:
+	$(VENV)/bin/pip install --upgrade funcsigs
+	$(VENV)/bin/pip install --upgrade mock
 	$(VENV)/bin/python -m unittest discover -s tests
 
