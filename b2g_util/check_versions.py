@@ -36,6 +36,9 @@ class VersionChecker(object):
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
     def prepare(self):
+        '''
+        parse args and setup the logging
+        '''
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -47,6 +50,11 @@ class VersionChecker(object):
         AdbWrapper.check_adb()
 
     def get_device_info(self, serial=None):
+        '''
+        Get the device information, include Gaia Version, Gecko Version, and so on.
+        @param serial: device serial number. (optional)
+        @return: the information dict object.
+        '''
         try:
             tmp_dir = tempfile.mkdtemp(prefix='checkversions_')
             # pull data from device
@@ -157,6 +165,11 @@ class VersionChecker(object):
         console_utilities.print_color(value, fg_color=value_color)
 
     def print_device_info(self, device_info, no_color=False):
+        '''
+        Print the device information.
+        @param device_info: The information dict object.
+        @param no_color: Print with color. Default is False.
+        '''
         # setup the format by platform
         if no_color:
             title_color = None
@@ -181,6 +194,13 @@ class VersionChecker(object):
         print ''
 
     def output_log(self, device_info_list):
+        '''
+        Write the information into file.
+
+        Enable it by I{--log-text} and I{--log-json} arguments.
+
+        @param device_info_list: The information dict object.
+        '''
         if self.args.log_json is None and self.args.log_text is None:
             return
         # prepare the result dict for parsing
@@ -209,6 +229,9 @@ class VersionChecker(object):
                 json.dump(result, outfile, indent=4)
 
     def run(self):
+        '''
+        Entry point.
+        '''
         self.prepare()
         devices = AdbWrapper.adb_devices()
         is_no_color = self.args.no_color
