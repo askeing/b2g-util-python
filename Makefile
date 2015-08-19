@@ -28,7 +28,7 @@ clean:
 
 # for document
 .PHONY: docs
-docs: clean
+docs: dev-env clean
 	$(VENV)/bin/pip install --upgrade epydoc
 	rm -rf docs
 	$(VENV)/bin/epydoc -o docs --html --exclude=misc -v b2g_util
