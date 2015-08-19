@@ -22,8 +22,12 @@ logger = logging.getLogger(__name__)
 
 
 class FullPrivilegeResetter(object):
+    '''
+    Enable/disable Certified Apps Debugging.
+    '''
+
     def __init__(self, **kwargs):
-        self.arg_parser = argparse.ArgumentParser(description='Enable Certified Apps Debugging.',
+        self.arg_parser = argparse.ArgumentParser(description='Enable/disable Certified Apps Debugging.',
                                                   formatter_class=RawTextHelpFormatter,
                                                   epilog=textwrap.dedent('''\
                                                   Please enable "ADB and Devtools" of device.
@@ -45,6 +49,9 @@ class FullPrivilegeResetter(object):
                                      '''))
 
     def prepare(self):
+        '''
+        parse args and setup the logging
+        '''
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -56,6 +63,12 @@ class FullPrivilegeResetter(object):
         AdbWrapper.check_adb()
 
     def set_certapps(self, enable=True, serial=None):
+        '''
+        Set the devtools permission for certapps.
+        @param enable: True will turn on the permission. False will turn off the permission.
+        @param serial: device serial number. (optional)
+        @raise exception: When it cannot pulling/pushing the pref.js file of device.
+        '''
         AdbWrapper.adb_root(serial=serial)
         logger.info('{} Full Privilege for WebIDE...'.format('Enabling' if enable else 'Disabling'))
 
@@ -115,6 +128,9 @@ class FullPrivilegeResetter(object):
             shutil.rmtree(tmp_dir)
 
     def run(self):
+        '''
+        Entry point.
+        '''
         self.prepare()
         devices = AdbWrapper.adb_devices()
 

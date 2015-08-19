@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 
 class PhoneReseter(object):
+    '''
+    Reset Firefox OS Phone.
+    '''
+
     def __init__(self, **kwargs):
         self.arg_parser = argparse.ArgumentParser(description='Reset Firefox OS Phone.',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
@@ -23,6 +27,9 @@ class PhoneReseter(object):
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
     def prepare(self):
+        '''
+        parse args and setup the logging
+        '''
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -34,9 +41,14 @@ class PhoneReseter(object):
         AdbWrapper.check_adb()
 
     def reset_phone(self, serial=None):
+        '''
+        Reset the B2G device.
+        @param serial: device serial number. (optional)
+        @raise exception: When no root permission for reset device.
+        '''
         # checking the adb root for backup/restore
         if not AdbWrapper.adb_root(serial=serial):
-            raise Exception('No root permission for backup and resotre.')
+            raise Exception('No root permission for reset device.')
         # starting to reset
         logger.info('Starting to Reset Firefox OS Phone...')
         AdbWrapper.adb_shell('rm -r /cache/*', serial=serial)
@@ -46,6 +58,9 @@ class PhoneReseter(object):
         logger.info('Reset Firefox OS Phone done.')
 
     def run(self):
+        '''
+        Entry point.
+        '''
         self.prepare()
         devices = AdbWrapper.adb_devices()
 
