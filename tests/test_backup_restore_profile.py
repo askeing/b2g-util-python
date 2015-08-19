@@ -16,35 +16,35 @@ class BackupResotreTester(unittest.TestCase):
 
     def test_compare_version(self):
         '''
-        Test compare_version.
+        Test _compare_version.
         '''
         # Backup 37.0_20150808, Device 37.0_20150801
-        self.assertTrue(self.app.compare_version('37.0_20150808', '37.0_20150801'),
+        self.assertTrue(self.app._compare_version('37.0_20150808', '37.0_20150801'),
                         '37.0 = 37.0, should return True.')
         # Backup 34.0a1_20150808, Device 37.0_20150801
-        self.assertTrue(self.app.compare_version('34.0a1_20150808', '37.0_20150801'),
+        self.assertTrue(self.app._compare_version('34.0a1_20150808', '37.0_20150801'),
                         '34.0 < 37.0, should return True.')
         # Backup 41.0a1_20150624160209/20150624160209, Device 42.0a1_20150803030210/20150803030210
-        self.assertTrue(self.app.compare_version('41.0a1_20150624160209/20150624160209', '42.0a1_20150803030210/20150803030210'),
+        self.assertTrue(self.app._compare_version('41.0a1_20150624160209/20150624160209', '42.0a1_20150803030210/20150803030210'),
                         '41.0 < 42.0, should return True.')
 
         # Backup 37.0_20150801, Device 34.0a1_20150808
         with self.assertRaises(Exception) as cm:
-            self.app.compare_version('37.0_20150801', '34.0a1_20150808')
+            self.app._compare_version('37.0_20150801', '34.0a1_20150808')
         expected_msg = 'Backup Profile 37.0 > Device Profile 34.0'
         self.assertEqual(cm.exception.message, expected_msg,
                          'Error message should be [{}], not [{}].'.format(expected_msg, cm.exception.message))
 
         # Backup 42.0a1_20150803030210/20150803030210, Device 41.0a1_20150624160209/20150624160209
         with self.assertRaises(Exception) as cm:
-            self.app.compare_version('42.0a1_20150803030210/20150803030210', '41.0a1_20150624160209/20150624160209')
+            self.app._compare_version('42.0a1_20150803030210/20150803030210', '41.0a1_20150624160209/20150624160209')
         expected_msg = 'Backup Profile 42.0 > Device Profile 41.0'
         self.assertEqual(cm.exception.message, expected_msg,
                          'Error message should be [{}], not [{}].'.format(expected_msg, cm.exception.message))
 
     def test_get_profile_path(self):
         '''
-        test get_profile_path
+        test _get_profile_path
         '''
         # create fake file
         expected_path = 'foo.default'
@@ -62,17 +62,17 @@ class BackupResotreTester(unittest.TestCase):
         with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
             temp.write(profile_contect)
             temp.flush()
-            result = self.app.get_profile_path(temp.name)
+            result = self.app._get_profile_path(temp.name)
             self.assertEqual(result, expected_path, 'Get [{}], expected [{}].'.format(result, expected_path))
 
         # test failed
         with self.assertRaises(Exception) as cm:
             with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
-                result = self.app.get_profile_path(temp.name)
+                result = self.app._get_profile_path(temp.name)
 
     def test_get_version_from_profile(self):
         '''
-        test get_version_from_profile
+        test _get_version_from_profile
         '''
         # create fake file
         expected_version = '42.0a1_20150803030210/20150803030210'
@@ -87,13 +87,13 @@ class BackupResotreTester(unittest.TestCase):
         with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
             temp.write(compatibility_contect)
             temp.flush()
-            result = self.app.get_version_from_profile(temp.name)
+            result = self.app._get_version_from_profile(temp.name)
             self.assertEqual(result, expected_version, 'Get [{}], expected [{}].'.format(result, expected_version))
 
         # test failed
         with self.assertRaises(Exception) as cm:
             with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
-                result = self.app.get_version_from_profile(temp.name)
+                result = self.app._get_version_from_profile(temp.name)
 
 
 if __name__ == '__main__':
