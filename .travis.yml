@@ -13,7 +13,6 @@ python:
 # command to install dependencies
 install:
    - "pip --quiet install virtualenv"
-   - "make dev-env"
 
 # command to run tests
 script:
