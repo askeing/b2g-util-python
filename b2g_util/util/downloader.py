@@ -3,21 +3,21 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import logging
 import urllib2
 import console_utilities
-from logger import Logger
+
+
+logger = logging.getLogger(__name__)
 
 
 class Downloader(object):
-
-    def __init__(self):
-        self.logger = Logger()
 
     def download(self, source_url, dest_folder, status_callback=None, progress_callback=None):
         try:
             console_utilities.hide_cursor()
             f = urllib2.urlopen(source_url)
-            self.logger.log('Downloading ' + os.path.basename(source_url), status_callback=status_callback)
+            logger.info('Downloading {} ...'.format(os.path.basename(source_url)))
             self.ensure_folder(dest_folder)
             filename_with_path = os.path.join(dest_folder, os.path.basename(source_url))
             with open(filename_with_path, "wb") as local_file:
@@ -32,13 +32,13 @@ class Downloader(object):
                     if progress_callback:
                         progress_callback(current_byte=pc, total_size=total_size)
                     local_file.write(chunk)
-            self.logger.log('Download to ' + filename_with_path, status_callback=status_callback)
+            logger.info('Download to {}'.format(filename_with_path))
             console_utilities.show_cursor()
             return filename_with_path
         except urllib2.HTTPError as e:
-            self.logger.log('HTTP Error: ' + str(e.code) + ' ' + e.msg + ' of ' + source_url, status_callback=status_callback, level=Logger._LEVEL_WARNING)
+            logger.error(e)
         except urllib2.URLError as e:
-            self.logger.log('URL Error: ' + str(e.code) + ' ' + e.msg + ' of ' + source_url, status_callback=status_callback, level=Logger._LEVEL_WARNING)
+            logger.error(e)
 
     def ensure_folder(self, folder):
         if not os.path.isdir(folder):

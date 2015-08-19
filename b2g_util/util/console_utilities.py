@@ -2,6 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+'''
+Manual testing the color and cursor, please just run following command.
+
+B{$ python <PATH_TO>/console_utilities.py}
+'''
+
+
 import os
 import sys
 
@@ -148,6 +155,9 @@ elif os.name == 'nt':
 
 
 def hide_cursor():
+    '''
+    Hide the cursor.
+    '''
     if os.name == 'posix':
         sys.stdout.write("\033[?25l")
         sys.stdout.flush()
@@ -161,6 +171,9 @@ def hide_cursor():
 
 
 def show_cursor():
+    '''
+    Show the cursor.
+    '''
     if os.name == 'posix':
         sys.stdout.write("\033[?25h")
         sys.stdout.flush()
@@ -174,6 +187,13 @@ def show_cursor():
 
 
 def print_color(message, fg_color=None, bg_color=None, newline=True):
+    '''
+    Print message with color.
+    @param message: The message.
+    @param fg_color: The foreground color. Default is None.
+    @param bg_color: The background color. Default is None.
+    @param newline: Print message with newline. Defa
+    '''
     if os.name == 'posix':
         result = ''
         if fg_color is not None and fg_color in POSIX_FG_COLOR_TABLE:
