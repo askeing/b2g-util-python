@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 class CrashReporter(object):
+    '''
+    Get the Crash Reports from Firefox OS Phone.
+    '''
+
     def __init__(self, **kwargs):
         self.arg_parser = argparse.ArgumentParser(description='Get the Crash Reports from Firefox OS Phone.',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
@@ -24,6 +28,9 @@ class CrashReporter(object):
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
     def prepare(self):
+        '''
+        parse args and setup the logging
+        '''
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -35,6 +42,13 @@ class CrashReporter(object):
         AdbWrapper.check_adb()
 
     def get_crashreports(self, serial=None):
+        '''
+        Print the pending and submitted crash reports on device.
+
+        The submitted crashs report will be displayed with URL link.
+
+        @param serial: device serial number. (optional)
+        '''
         AdbWrapper.adb_root(serial=serial)
         logger.info('Getting Crash Reports...')
 
@@ -52,6 +66,9 @@ class CrashReporter(object):
                 print(submitted_url)
 
     def run(self):
+        '''
+        Entry point.
+        '''
         self.prepare()
         devices = AdbWrapper.adb_devices()
 
