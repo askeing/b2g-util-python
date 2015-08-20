@@ -155,8 +155,8 @@ class AdbWrapper(object):
             cmd = 'adb -s %s root' % (serial,)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, stderr = p.communicate()
-        logger.debug('cmd: {0}'.format(cmd))
-        logger.debug('output: {0}'.format(output))
+        logger.debug('CMD: {0}'.format(cmd))
+        logger.debug('RET: {0}'.format(output))
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
         if p.returncode is 0 and (not 'cannot' in output):
