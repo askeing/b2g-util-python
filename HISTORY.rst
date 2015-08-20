@@ -1,6 +1,25 @@
 Release History
 ---------------
 
+0.0.7 (2015-08-20)
+++++++++++++++++++
+
+**Features and Improvements**
+
+- Stop backup profil when the folder already exists.
+- Refactoring all tools, move prepare() method from __init__() to run().
+- Add new argument "--skip-version-check" for backup_restore_profile.
+- Extract compare_version(), get_profile_path(), and get_version_from_profile() methods.
+- Add docstring for creating the document.
+- Add unittest for backup_restore_profile, and adb_helper.
+- Update README.
+
+**bugfixes**
+
+- Remove unused code.
+- Remove the logger from downloader and decompressor.
+
+
 0.0.6 (2015-08-14)
 ++++++++++++++++++
 
