@@ -16,7 +16,7 @@ class BackupResotreTester(unittest.TestCase):
 
     def test_compare_version(self):
         '''
-        Test _compare_version.
+        Test _compare_version
         '''
         # Backup 37.0_20150808, Device 37.0_20150801
         self.assertTrue(self.app._compare_version('37.0_20150808', '37.0_20150801'),
@@ -28,6 +28,10 @@ class BackupResotreTester(unittest.TestCase):
         self.assertTrue(self.app._compare_version('41.0a1_20150624160209/20150624160209', '42.0a1_20150803030210/20150803030210'),
                         '41.0 < 42.0, should return True.')
 
+    def test_compare_version_fail(self):
+        '''
+        Test _compare_version fail
+        '''
         # Backup 37.0_20150801, Device 34.0a1_20150808
         with self.assertRaises(Exception) as cm:
             self.app._compare_version('37.0_20150801', '34.0a1_20150808')
@@ -65,7 +69,10 @@ class BackupResotreTester(unittest.TestCase):
             result = self.app._get_profile_path(temp.name)
             self.assertEqual(result, expected_path, 'Get [{}], expected [{}].'.format(result, expected_path))
 
-        # test failed
+    def test_get_profile_path_fail(self):
+        '''
+        test _get_profile_path fail
+        '''
         with self.assertRaises(Exception) as cm:
             with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
                 result = self.app._get_profile_path(temp.name)
@@ -90,7 +97,10 @@ class BackupResotreTester(unittest.TestCase):
             result = self.app._get_version_from_profile(temp.name)
             self.assertEqual(result, expected_version, 'Get [{}], expected [{}].'.format(result, expected_version))
 
-        # test failed
+    def test_get_version_from_profile_fail(self):
+        '''
+        test _get_version_from_profile fail
+        '''
         with self.assertRaises(Exception) as cm:
             with tempfile.NamedTemporaryFile(prefix='test_b2g_util_') as temp:
                 result = self.app._get_version_from_profile(temp.name)
