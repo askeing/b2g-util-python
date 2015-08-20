@@ -13,7 +13,7 @@ To install **b2g_util**, simply:
 
 .. code-block:: bash
 
-    $ pip install --upgrade b2g_util
+    $ pip install -U b2g_util
 
 You might have to add **sudo** for getting more permission when install it into your system.
 
@@ -86,7 +86,7 @@ b2g_enable_certapps_devtools
 
     usage: b2g_enable_certapps_devtools [-h] [-s SERIAL] [--disable] [-v]
 
-    Enable Certified Apps Debugging.
+    Enable/disable Certified Apps Debugging.
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -140,3 +140,29 @@ b2g_reset_phone
                             environment variable. (default: None)
       -v, --verbose         Turn on verbose output, with all the debug logger.
                             (default: False)
+
+
+Development
+-----------
+
+To develop the **b2g_util**, simply:
+
+.. code-block:: bash
+
+    $ make dev-env
+    $ source env-python/bin/activate
+
+Or you can run tests:
+
+.. code-block:: bash
+
+    $ make test
+
+You also can create the document:
+
+.. code-block:: bash
+
+    $ make docs
+
+Open **docs/index.html** to access the document.
+
