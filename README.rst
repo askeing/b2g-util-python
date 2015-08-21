@@ -9,13 +9,19 @@ B2G python utilities library, and some tools.
 Installation
 ------------
 
-To install **b2g_util**, simply:
+To install **b2g_util**, simply running then following command.
+
+Note: You might have to add **sudo** for getting more permission when install it into your system.
 
 .. code-block:: bash
 
     $ pip install -U b2g_util
 
-You might have to add **sudo** for getting more permission when install it into your system.
+And the **pip** and **setuptools** should be upgraded to latest version before install.
+
+.. code-block:: bash
+
+    $ sudo pip install -U pip setuptools
 
 
 Tools Usages
@@ -158,11 +164,9 @@ Or you can run tests:
 
     $ make test
 
-You also can create the document:
+You also can create the document, and then you can open **docs/index.html** to access the document.
 
 .. code-block:: bash
 
     $ make docs
-
-Open **docs/index.html** to access the document.
 
