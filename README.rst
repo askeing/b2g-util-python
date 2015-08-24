@@ -151,10 +151,12 @@ b2g_reset_phone
 Development
 -----------
 
-To develop the **b2g_util**, simply:
+To develop the **b2g_util**, fork project from `Github <https://github.com/askeing/b2g-util-python.git>`_ and simply:
 
 .. code-block:: bash
 
+    $ git clone https://github.com/<YOUR_ACCOUNT>/b2g-util-python.git
+    $ cd b2g-util-python
     $ make dev-env
     $ source env-python/bin/activate
 
