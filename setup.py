@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION='0.0.7'
+VERSION = '0.0.8'
 
 install_requires = []
 
@@ -28,7 +28,7 @@ if __name__ == '__main__':
         version=VERSION,
         description='B2G Utilities',
         long_description=long_description,
-        keywords='B2G utilities FirefoxOS FxOS ',
+        keywords='Mozilla B2G FirefoxOS FxOS utilities ',
         author='Askeing Yen',
         author_email='askeing@gmail.com',
         url='https://github.com/askeing/b2g-util-python',
@@ -46,4 +46,3 @@ if __name__ == '__main__':
         b2g_reset_phone = b2g_util.reset_phone:main
         """,
     )
-

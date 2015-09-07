@@ -1,6 +1,21 @@
 Release History
 ---------------
 
+0.0.8 (2015-09-07)
+++++++++++++++++++
+
+**Features and Improvements**
+
+- Modify tools for more reusable.
+- Refactoring.
+- Add JSON output for get_crashreports.
+
+**bugfixes**
+
+- Remove unused import.
+- Fix the docstrings from single-quoted to double-quoted string format.
+
+
 0.0.7 (2015-08-20)
 ++++++++++++++++++
 
