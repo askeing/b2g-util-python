@@ -27,6 +27,48 @@ logger = logging.getLogger(__name__)
 
 class VersionChecker(object):
     def __init__(self, **kwargs):
+        self.no_color = False
+        self.serial = None
+        self.log_text = None
+        self.log_json = None
+
+    def set_serial(self, serial):
+        """
+        Setup the serial number.
+        @param serial: the given serial number.
+        """
+        self.serial = serial
+        logger.debug('Set serial: {}'.format(self.serial))
+
+    def set_no_color(self, flag):
+        """
+        Setup the no_color flag.
+        @param flag: True or Flas.
+        """
+        self.no_color = flag
+        logger.debug('Set no_color: {}'.format(self.no_color))
+
+    def set_log_text(self, log_text):
+        """
+        Setup the log_text file path.
+        @param flag: the output text file path.
+        """
+        self.log_text = log_text
+        logger.debug('Set log_text: {}'.format(self.log_text))
+
+    def set_log_json(self, log_json):
+        """
+        Setup the log_json file path.
+        @param flag: the outpupt json file path.
+        """
+        self.log_json = log_json
+        logger.debug('Set log_json: {}'.format(self.log_json))
+
+    def cli(self):
+        """
+        Handle the argument parse, and the return the instance itself.
+        """
+        # argument parser
         self.arg_parser = argparse.ArgumentParser(description='Check the version information of Firefox OS.',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
         self.arg_parser.add_argument('--no-color', action='store_true', dest='no_color', default=False, help='Do not print with color. NO_COLOR will overrides this option.')
@@ -35,10 +77,7 @@ class VersionChecker(object):
         self.arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON output.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
-    def prepare(self):
-        '''
-        parse args and setup the logging
-        '''
+        # parse args and setup the logging
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -47,14 +86,22 @@ class VersionChecker(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
+        # check ADB
         AdbWrapper.check_adb()
+        # assign variable
+        self.set_no_color(self.args.no_color)
+        self.set_serial(self.args.serial)
+        self.set_log_text(self.args.log_text)
+        self.set_log_json(self.args.log_json)
+        # return instance
+        return self
 
     def get_device_info(self, serial=None):
-        '''
+        """
         Get the device information, include Gaia Version, Gecko Version, and so on.
         @param serial: device serial number. (optional)
         @return: the information dict object.
-        '''
+        """
         try:
             tmp_dir = tempfile.mkdtemp(prefix='checkversions_')
             # pull data from device
@@ -165,11 +212,11 @@ class VersionChecker(object):
         console_utilities.print_color(value, fg_color=value_color)
 
     def print_device_info(self, device_info, no_color=False):
-        '''
+        """
         Print the device information.
         @param device_info: The information dict object.
         @param no_color: Print with color. Default is False.
-        '''
+        """
         # setup the format by platform
         if no_color:
             title_color = None
@@ -193,29 +240,18 @@ class VersionChecker(object):
             self._print_device_info_item('Bootloader', device_info['Bootloader'], title_color=title_color, value_color=hw_color)
         print ''
 
-    def output_log(self, device_info_list):
-        '''
+    def _output_log(self):
+        """
         Write the information into file.
-
         Enable it by I{--log-text} and I{--log-json} arguments.
-
-        @param device_info_list: The information dict object.
-        '''
-        if self.args.log_json is None and self.args.log_text is None:
+        """
+        if self.log_json is None and self.log_text is None:
             return
         # prepare the result dict for parsing
-        result = {}
-        unknown_serial_index = 1
-        for device_info in device_info_list:
-            if device_info['Serial'] == None:
-                device_serial = 'unknown_serial_' + str(unknown_serial_index)
-                unknown_serial_index = unknown_serial_index + 1
-            else:
-                device_serial = device_info['Serial']
-            result[device_serial] = device_info
+        result = self.get_output_dict()
         # output
-        if self.args.log_text is not None:
-            with open(self.args.log_text, 'w') as outfile:
+        if self.log_text is not None:
+            with open(self.log_text, 'w') as outfile:
                 for device_serial, device_info in result.items():
                     outfile.write('# %s\n' % device_serial)
                     if 'Skip' in device_info and device_info['Skip'] is True:
@@ -224,49 +260,63 @@ class VersionChecker(object):
                         for key, value in device_info.items():
                             outfile.write('%s=%s\n' % (re.sub(r'\s+|\(|\)', '', key), re.sub(r'\s+', '_', value)))
                         outfile.write('\n')
-        if self.args.log_json is not None:
-            with open(self.args.log_json, 'w') as outfile:
+        if self.log_json is not None:
+            with open(self.log_json, 'w') as outfile:
                 json.dump(result, outfile, indent=4)
 
+    def get_output_dict(self):
+        """
+        Can get the devices' information dict object after run().
+        """
+        result = {}
+        unknown_serial_index = 1
+        for device_info in self.device_info_list:
+            if device_info['Serial'] is None:
+                device_serial = 'unknown_serial_' + str(unknown_serial_index)
+                unknown_serial_index = unknown_serial_index + 1
+            else:
+                device_serial = device_info['Serial']
+            result[device_serial] = device_info
+        return result
+
     def run(self):
-        '''
+        """
         Entry point.
-        '''
-        self.prepare()
-        devices = AdbWrapper.adb_devices()
-        is_no_color = self.args.no_color
+        """
+        self.devices = AdbWrapper.adb_devices()
+        is_no_color = self.no_color
         if 'NO_COLOR' in os.environ:
             try:
                 is_no_color = bool(util.strtobool(os.environ['NO_COLOR'].lower()))
             except:
                 logger.error('Invalid NO_COLOR value [{0}].'.format(os.environ['NO_COLOR']))
 
-        if len(devices) == 0:
+        if len(self.devices) == 0:
             raise Exception('No device.')
-        elif len(devices) >= 1:
-            final_serial = AdbHelper.get_serial(self.args.serial)
+        elif len(self.devices) >= 1:
+            final_serial = AdbHelper.get_serial(self.serial)
             if final_serial is None:
-                device_info_list = []
-                for device, state in devices.items():
+                self.device_info_list = []
+                for device, state in self.devices.items():
                     print('Serial: {0} (State: {1})'.format(device, state))
                     if state == 'device':
                         device_info = self.get_device_info(serial=device)
                         self.print_device_info(device_info, no_color=is_no_color)
-                        device_info_list.append(device_info)
+                        self.device_info_list.append(device_info)
                     else:
                         print('Skipped.\n')
-                        device_info_list.append({'Serial': device, 'Skip': True})
-                self.output_log(device_info_list)
+                        self.device_info_list.append({'Serial': device, 'Skip': True})
             else:
-                print('Serial: {0} (State: {1})'.format(final_serial, devices[final_serial]))
+                print('Serial: {0} (State: {1})'.format(final_serial, self.devices[final_serial]))
                 device_info = self.get_device_info(serial=final_serial)
+                self.device_info_list = [device_info]
                 self.print_device_info(device_info, no_color=is_no_color)
-                self.output_log([device_info])
+            self._output_log()
 
 
 def main():
     try:
-        VersionChecker().run()
+        VersionChecker().cli().run()
     except Exception as e:
         logger.error(e)
         exit(1)
