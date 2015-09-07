@@ -11,7 +11,6 @@ import logging
 import tempfile
 import argparse
 import ConfigParser
-from datetime import datetime
 from argparse import ArgumentDefaultsHelpFormatter
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper

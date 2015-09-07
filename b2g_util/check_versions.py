@@ -17,7 +17,6 @@ from distutils import util
 from datetime import datetime
 from argparse import ArgumentDefaultsHelpFormatter
 from util import console_utilities
-from util.adb_helper import AdbWrapper
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 

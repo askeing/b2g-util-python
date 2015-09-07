@@ -5,14 +5,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-import re
 import shutil
 import logging
 import argparse
 import tempfile
 import textwrap
 from argparse import RawTextHelpFormatter
-from argparse import ArgumentDefaultsHelpFormatter
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 from util.b2g_helper import B2GHelper

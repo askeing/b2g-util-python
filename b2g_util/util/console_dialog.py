@@ -21,9 +21,9 @@ class ConsoleDialog(object):
     _NO_CMD_INDEX = 'n'
 
     def __init__(self):
-        '''
+        """
         Setup the console rows and columns. Default is 23x80.
-        '''
+        """
         try:
             self.console_rows, self.console_columns = ConsoleDialog.get_terminal_size()
         except:
@@ -31,7 +31,7 @@ class ConsoleDialog(object):
             self.console_columns = 80
 
     def menu(self, title, description, items_list, dialog_width=80, alternative_cmds_dict={}):
-        '''
+        """
         Create the menu dialog.
 
         The index of items_list will be numbers.
@@ -44,7 +44,7 @@ class ConsoleDialog(object):
         @param alternative_cmds_dict: The command list. e.g. {1: 'foo', 2: 'bar'}.
         @param dialog_width: The width, default is 80.
         @return: {'SELECT': USER_INPUT, 'ITEMS': ALL_ITEMS_DICT}.
-        '''
+        """
         # print title
         self._print_title(title)
         # create items dict
@@ -58,14 +58,14 @@ class ConsoleDialog(object):
         return {'SELECT': response, 'ITEMS': items_dict}
 
     def input_box(self, title, description, password=False, dialog_width=80):
-        '''
+        """
         Create the input dialog.
         @param title: The title.
         @param description: The description.
         @param password: Do not display the input when type is password, default is False.
         @param dialog_width: The width, default is 80.
         @return: The input string from user.
-        '''
+        """
         # print title
         self._print_title(title)
         if password:
@@ -75,13 +75,13 @@ class ConsoleDialog(object):
         return response
 
     def msg_box(self, title, description, press_enter_to_next=False, dialog_width=80):
-        '''
+        """
         Create the message dialog.
         @param title: The title.
         @param description: The description.
         @param press_enter_to_next: Waiting for pressing Enter, default is False.
         @param dialog_width: The width, default is 80.
-        '''
+        """
         # print title
         self._print_title(title)
         print '> ' + description
@@ -91,14 +91,14 @@ class ConsoleDialog(object):
             raw_input("Press Enter to continue...")
 
     def yes_no(self, title, description, default_value='', dialog_width=80):
-        '''
+        """
         Create the Yes/No dialog.
         @param title: The title.
         @param description: The description.
         @param default_value: The default value, default is null string.
         @param dialog_width: The width, default is 80.
         @return: True or False from user.
-        '''
+        """
         default = default_value.lower()
         if default_value not in [self._YES_CMD_INDEX, self._NO_CMD_INDEX]:
             default = ''
@@ -182,8 +182,8 @@ class ConsoleDialog(object):
 
     @staticmethod
     def get_terminal_size():
-        '''
+        """
         @return: the rows and columns of terminal.
         @see: U{http://stackoverflow.com/questions/566746/how-to-get-console-window-width-in-python}
-        '''
+        """
         return os.popen('stty size', 'r').read().split()

@@ -16,11 +16,11 @@ class AdbWrapper(object):
 
     @classmethod
     def check_adb(cls):
-        '''
+        """
         Check the ADB command.
         @return: True if your system have ADB command.
         @raise exception: There is no ADB command in your system.
-        '''
+        """
         logger.debug('Checking ADB...')
         if spawn.find_executable('adb') == None:
             raise Exception('There is no "adb" in your environment PATH.')
@@ -29,11 +29,11 @@ class AdbWrapper(object):
 
     @classmethod
     def adb_devices(cls):
-        '''
+        """
         Get the device list.
         @return: devices as dict {device_serial: device_status, ...}.
         @raise exception: When return code isn't zero.
-        '''
+        """
         cmd = 'adb devices'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, stderr = p.communicate()
@@ -57,11 +57,11 @@ class AdbWrapper(object):
 
     @classmethod
     def adb_pull(cls, source, dest, serial=None):
-        '''
+        """
         Pull files from device.
         @return: stdout of command.
         @raise exception: When return code isn't zero.
-        '''
+        """
         if serial is None:
             cmd = 'adb pull'
         else:
@@ -79,11 +79,11 @@ class AdbWrapper(object):
 
     @classmethod
     def adb_push(cls, source, dest, serial=None):
-        '''
+        """
         Push files into device.
         @return: stdout of command.
         @raise exception: when return code isn't zero.
-        '''
+        """
         if serial is None:
             cmd = 'adb push'
         else:
@@ -101,11 +101,11 @@ class AdbWrapper(object):
 
     @classmethod
     def adb_shell(cls, command, serial=None):
-        '''
+        """
         Run command on device.
         @return: the stdout and return code (from device) of "adb shell" command. e.g. (stdout, retcode)
         @raise exception: When return code (from adb command) isn't zero.
-        '''
+        """
         if serial is None:
             cmd = 'adb shell'
         else:
@@ -145,10 +145,10 @@ class AdbWrapper(object):
 
     @classmethod
     def adb_root(cls, serial=None):
-        '''
+        """
         Get the root permission of ADB.
         @return: True if adb already running as root. False if failed.
-        '''
+        """
         if serial is None:
             cmd = 'adb root'
         else:
@@ -176,7 +176,7 @@ class AdbHelper(object):
 
     @classmethod
     def get_serial(cls, serial_number):
-        '''
+        """
         Input the serial number.
         This method will check with "ANDROID_SERIAL" environmental variable, and then return the serial number if the serial is avaiable.
         When serial number is not avaiable, return None.
@@ -189,7 +189,7 @@ class AdbHelper(object):
 
         @return: the serial number of device.
         @raise exception: if there is no device have the given serial number.
-        '''
+        """
         # return None if there are no serial and ANDROID_SERIAL
         final_serial_number = None
         # no serial then check ANDROID_SERIAL
