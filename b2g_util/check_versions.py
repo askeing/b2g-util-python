@@ -25,7 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 class VersionChecker(object):
-    def __init__(self, **kwargs):
+    def __init__(self):
+        self.devices = None
+        self.device_info_list = []
         self.no_color = False
         self.serial = None
         self.log_text = None
@@ -50,7 +52,7 @@ class VersionChecker(object):
     def set_log_text(self, log_text):
         """
         Setup the log_text file path.
-        @param flag: the output text file path.
+        @param log_text: the output text file path.
         """
         self.log_text = log_text
         logger.debug('Set log_text: {}'.format(self.log_text))
@@ -58,7 +60,7 @@ class VersionChecker(object):
     def set_log_json(self, log_json):
         """
         Setup the log_json file path.
-        @param flag: the outpupt json file path.
+        @param log_json: the outpupt json file path.
         """
         self.log_json = log_json
         logger.debug('Set log_json: {}'.format(self.log_json))
@@ -68,18 +70,18 @@ class VersionChecker(object):
         Handle the argument parse, and the return the instance itself.
         """
         # argument parser
-        self.arg_parser = argparse.ArgumentParser(description='Check the version information of Firefox OS.',
+        arg_parser = argparse.ArgumentParser(description='Check the version information of Firefox OS.',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
-        self.arg_parser.add_argument('--no-color', action='store_true', dest='no_color', default=False, help='Do not print with color. NO_COLOR will overrides this option.')
-        self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
-        self.arg_parser.add_argument('--log-text', action='store', dest='log_text', default=None, help='Text ouput.')
-        self.arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON output.')
-        self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+        arg_parser.add_argument('--no-color', action='store_true', dest='no_color', default=False, help='Do not print with color. NO_COLOR will overrides this option.')
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
+        arg_parser.add_argument('--log-text', action='store', dest='log_text', default=None, help='Text ouput.')
+        arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON output.')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
         # parse args and setup the logging
-        self.args = self.arg_parser.parse_args()
+        args = arg_parser.parse_args()
         # setup the logging config
-        if self.args.verbose is True:
+        if args.verbose is True:
             verbose_formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             logging.basicConfig(level=logging.DEBUG, format=verbose_formatter)
         else:
@@ -88,36 +90,42 @@ class VersionChecker(object):
         # check ADB
         AdbWrapper.check_adb()
         # assign variable
-        self.set_no_color(self.args.no_color)
-        self.set_serial(self.args.serial)
-        self.set_log_text(self.args.log_text)
-        self.set_log_json(self.args.log_json)
+        self.set_no_color(args.no_color)
+        self.set_serial(args.serial)
+        self.set_log_text(args.log_text)
+        self.set_log_json(args.log_json)
         # return instance
         return self
 
-    def get_device_info(self, serial=None):
+    @staticmethod
+    def get_device_info(serial=None):
         """
         Get the device information, include Gaia Version, Gecko Version, and so on.
         @param serial: device serial number. (optional)
         @return: the information dict object.
         """
+        tmp_dir = None
         try:
             tmp_dir = tempfile.mkdtemp(prefix='checkversions_')
             # pull data from device
             try:
                 AdbWrapper.adb_pull('/system/b2g/omni.ja', tmp_dir, serial=serial)
-            except:
+            except Exception as e:
+                logger.debug(e)
                 logger.error('Error pulling Gecko file.')
             try:
                 AdbWrapper.adb_pull('/data/local/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
-            except:
+            except Exception as e:
+                logger.debug(e)
                 try:
                     AdbWrapper.adb_pull('/system/b2g/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
-                except:
+                except Exception as e:
+                    logger.debug(e)
                     logger.error('Error pulling Gaia file.')
             try:
                 AdbWrapper.adb_pull('/system/b2g/application.ini', tmp_dir, serial=serial)
-            except:
+            except Exception as e:
+                logger.debug(e)
                 logger.error('Error pulling application.ini file.')
             # get Gaia info
             gaia_rev = 'n/a'
@@ -145,12 +153,13 @@ class VersionChecker(object):
                 deopt_exec = os.path.join(tmp_dir, 'optimizejars.py')
                 os.makedirs(deopt_dir)
                 # TODO rewrite optimizejars.py if possible
-                current_dir = cur = os.path.dirname(os.path.abspath(__file__))
+                current_dir = os.path.dirname(os.path.abspath(__file__))
                 current_exec = os.path.join(current_dir, 'misc', 'optimizejars.py')
                 shutil.copyfile(current_exec, deopt_exec)
                 cmd = 'python %s --deoptimize %s %s %s' % (deopt_exec, tmp_dir, tmp_dir, deopt_dir)
                 p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 output = p.communicate()[0]
+                logger.debug('optimizejars.py stdout: {}'.format(output))
                 # unzip omni.ja to get Gecko info
                 if os.path.isfile(deopt_file):
                     with open(deopt_file, 'rb') as f:
@@ -172,6 +181,8 @@ class VersionChecker(object):
             else:
                 print 'Can not find omni.ja file.'
             # get Gecko version, and B2G BuildID from application.ini file
+            build_id = 0
+            version = 0
             if os.path.isfile(os.path.join(tmp_dir, 'application.ini')):
                 for line in open(os.path.join(tmp_dir, 'application.ini'), "r"):
                     if re.search(r'^\s*BuildID', line):
@@ -190,23 +201,25 @@ class VersionChecker(object):
             firmware_date = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.date', serial=serial)[0])
             firmware_bootloader = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.boot.bootloader', serial=serial)[0])
             # prepare the return information
-            device_info = {}
-            device_info['Serial'] = serial
-            device_info['Build ID'] = build_id
-            device_info['Gaia Revision'] = gaia_rev
-            device_info['Gaia Date'] = gaia_date
-            device_info['Gecko Revision'] = gecko_rev
-            device_info['Gecko Version'] = version
-            device_info['Device Name'] = device_name
-            device_info['Firmware(Release)'] = firmware_release
-            device_info['Firmware(Incremental)'] = firmware_incremental
-            device_info['Firmware Date'] = firmware_date
-            device_info['Bootloader'] = firmware_bootloader
+            device_info = {'Serial': serial,
+                           'Build ID': build_id,
+                           'Gaia Revision': gaia_rev,
+                           'Gaia Date': gaia_date,
+                           'Gecko Revision': gecko_rev,
+                           'Gecko Version': version,
+                           'Device Name': device_name,
+                           'Firmware(Release)': firmware_release,
+                           'Firmware(Incremental)': firmware_incremental,
+                           'Firmware Date': firmware_date,
+                           'Bootloader': firmware_bootloader}
         finally:
-            shutil.rmtree(tmp_dir)
+            if tmp_dir:
+                shutil.rmtree(tmp_dir)
+                logger.debug('Remove {}.'.format(tmp_dir))
         return device_info
 
-    def _print_device_info_item(self, title, value, title_color=None, value_color=None):
+    @staticmethod
+    def _print_device_info_item(title, value, title_color=None, value_color=None):
         console_utilities.print_color('{0:22s}'.format(title), fg_color=title_color, newline=False)
         console_utilities.print_color(value, fg_color=value_color)
 
@@ -272,7 +285,7 @@ class VersionChecker(object):
         for device_info in self.device_info_list:
             if device_info['Serial'] is None:
                 device_serial = 'unknown_serial_' + str(unknown_serial_index)
-                unknown_serial_index = unknown_serial_index + 1
+                unknown_serial_index += 1
             else:
                 device_serial = device_info['Serial']
             result[device_serial] = device_info
@@ -287,7 +300,8 @@ class VersionChecker(object):
         if 'NO_COLOR' in os.environ:
             try:
                 is_no_color = bool(util.strtobool(os.environ['NO_COLOR'].lower()))
-            except:
+            except Exception as e:
+                logger.debug(e)
                 logger.error('Invalid NO_COLOR value [{0}].'.format(os.environ['NO_COLOR']))
 
         if len(self.devices) == 0:
