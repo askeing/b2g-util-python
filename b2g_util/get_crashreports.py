@@ -12,7 +12,6 @@ from argparse import ArgumentDefaultsHelpFormatter
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +20,10 @@ class CrashReporter(object):
     Get the Crash Reports from Firefox OS Phone.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
+        self.pending = None
+        self.submitted = None
+        self.submitted_url_list = []
         self.serial = None
         self.log_json = None
 
@@ -36,7 +38,7 @@ class CrashReporter(object):
     def set_log_json(self, log_json):
         """
         Setup the log_json file path.
-        @param flag: the outpupt json file path.
+        @param log_json: the outpupt json file path.
         """
         self.log_json = log_json
         logger.debug('Set log_json: {}'.format(self.log_json))
@@ -46,15 +48,18 @@ class CrashReporter(object):
         Handle the argument parse, and the return the instance itself.
         """
         # argument parser
-        self.arg_parser = argparse.ArgumentParser(description='Get the Crash Reports from Firefox OS Phone.',
-                                                  formatter_class=ArgumentDefaultsHelpFormatter)
-        self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
-        self.arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON ouptut.')
-        self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+        arg_parser = argparse.ArgumentParser(description='Get the Crash Reports from Firefox OS Phone.',
+                                             formatter_class=ArgumentDefaultsHelpFormatter)
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
+                                help='Directs command to the device or emulator with the given serial number. '
+                                     'Overrides ANDROID_SERIAL environment variable.')
+        arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON ouptut.')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+                                help='Turn on verbose output, with all the debug logger.')
         # parse args and setup the logging
-        self.args = self.arg_parser.parse_args()
+        args = arg_parser.parse_args()
         # setup the logging config
-        if self.args.verbose is True:
+        if args.verbose is True:
             verbose_formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             logging.basicConfig(level=logging.DEBUG, format=verbose_formatter)
         else:
@@ -63,8 +68,8 @@ class CrashReporter(object):
         # check ADB
         AdbWrapper.check_adb()
         # assign variable
-        self.set_serial(self.args.serial)
-        self.set_log_json(self.args.log_json)
+        self.set_serial(args.serial)
+        self.set_log_json(args.log_json)
         # return instance
         return self
 
@@ -79,10 +84,12 @@ class CrashReporter(object):
         AdbWrapper.adb_root(serial=serial)
         logger.info('Getting Crash Reports...')
 
-        self.pending, retcode_pending = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/pending', serial=serial)
+        self.pending, retcode_pending = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/pending',
+                                                             serial=serial)
         print('Pending Crash Reports:\n{}\n'.format(self.pending))
 
-        self.submitted, retcode_submitted = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/submitted', serial=serial)
+        self.submitted, retcode_submitted = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/submitted',
+                                                                 serial=serial)
         print('Submitted Crash Reports:\n{}\n'.format(self.submitted))
 
         self.submitted_url_list = []

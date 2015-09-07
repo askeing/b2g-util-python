@@ -10,7 +10,6 @@ from argparse import ArgumentDefaultsHelpFormatter
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +18,7 @@ class PhoneReseter(object):
     Reset Firefox OS Phone.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.serial = None
 
     def set_serial(self, serial):
@@ -35,15 +34,18 @@ class PhoneReseter(object):
         Handle the argument parse, and the return the instance itself.
         """
         # argument parser
-        self.arg_parser = argparse.ArgumentParser(description='Reset Firefox OS Phone.',
-                                                  formatter_class=ArgumentDefaultsHelpFormatter)
-        self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
-        self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+        arg_parser = argparse.ArgumentParser(description='Reset Firefox OS Phone.',
+                                             formatter_class=ArgumentDefaultsHelpFormatter)
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
+                                help='Directs command to the device or emulator with the given serial number.'
+                                     'Overrides ANDROID_SERIAL environment variable.')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+                                help='Turn on verbose output, with all the debug logger.')
 
         # parse args and setup the logging
-        self.args = self.arg_parser.parse_args()
+        args = arg_parser.parse_args()
         # setup the logging config
-        if self.args.verbose is True:
+        if args.verbose is True:
             verbose_formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             logging.basicConfig(level=logging.DEBUG, format=verbose_formatter)
         else:
@@ -52,11 +54,12 @@ class PhoneReseter(object):
         # check ADB
         AdbWrapper.check_adb()
         # assign the variable
-        self.set_serial(self.args.serial)
+        self.set_serial(args.serial)
         # return instance
         return self
 
-    def reset_phone(self, serial=None):
+    @staticmethod
+    def reset_phone(serial=None):
         """
         Reset the B2G device.
         @param serial: device serial number. (optional)
@@ -101,6 +104,7 @@ def main():
     except Exception as e:
         logger.error(e)
         exit(1)
+
 
 if __name__ == '__main__':
     main()

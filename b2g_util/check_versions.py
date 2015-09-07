@@ -20,7 +20,6 @@ from util import console_utilities
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -71,12 +70,16 @@ class VersionChecker(object):
         """
         # argument parser
         arg_parser = argparse.ArgumentParser(description='Check the version information of Firefox OS.',
-                                                  formatter_class=ArgumentDefaultsHelpFormatter)
-        arg_parser.add_argument('--no-color', action='store_true', dest='no_color', default=False, help='Do not print with color. NO_COLOR will overrides this option.')
-        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
+                                             formatter_class=ArgumentDefaultsHelpFormatter)
+        arg_parser.add_argument('--no-color', action='store_true', dest='no_color', default=False,
+                                help='Do not print with color. NO_COLOR will overrides this option.')
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
+                                help='Directs command to the device or emulator with the given serial number. '
+                                     'Overrides ANDROID_SERIAL environment variable.')
         arg_parser.add_argument('--log-text', action='store', dest='log_text', default=None, help='Text ouput.')
         arg_parser.add_argument('--log-json', action='store', dest='log_json', default=None, help='JSON output.')
-        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+                                help='Turn on verbose output, with all the debug logger.')
 
         # parse args and setup the logging
         args = arg_parser.parse_args()
@@ -114,11 +117,13 @@ class VersionChecker(object):
                 logger.debug(e)
                 logger.error('Error pulling Gecko file.')
             try:
-                AdbWrapper.adb_pull('/data/local/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
+                AdbWrapper.adb_pull('/data/local/webapps/settings.gaiamobile.org/application.zip', tmp_dir,
+                                    serial=serial)
             except Exception as e:
                 logger.debug(e)
                 try:
-                    AdbWrapper.adb_pull('/system/b2g/webapps/settings.gaiamobile.org/application.zip', tmp_dir, serial=serial)
+                    AdbWrapper.adb_pull('/system/b2g/webapps/settings.gaiamobile.org/application.zip', tmp_dir,
+                                        serial=serial)
                 except Exception as e:
                     logger.debug(e)
                     logger.error('Error pulling Gaia file.')
@@ -196,10 +201,14 @@ class VersionChecker(object):
                 version = 'n/a'
             # get device information by getprop command
             device_name = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.product.device', serial=serial)[0])
-            firmware_release = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.release', serial=serial)[0])
-            firmware_incremental = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.version.incremental', serial=serial)[0])
+            firmware_release = re.sub(r'\r+|\n+', '',
+                                      AdbWrapper.adb_shell('getprop ro.build.version.release', serial=serial)[0])
+            firmware_incremental = re.sub(r'\r+|\n+', '',
+                                          AdbWrapper.adb_shell('getprop ro.build.version.incremental', serial=serial)[
+                                              0])
             firmware_date = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.build.date', serial=serial)[0])
-            firmware_bootloader = re.sub(r'\r+|\n+', '', AdbWrapper.adb_shell('getprop ro.boot.bootloader', serial=serial)[0])
+            firmware_bootloader = re.sub(r'\r+|\n+', '',
+                                         AdbWrapper.adb_shell('getprop ro.boot.bootloader', serial=serial)[0])
             # prepare the return information
             device_info = {'Serial': serial,
                            'Build ID': build_id,
@@ -240,16 +249,25 @@ class VersionChecker(object):
             hw_color = console_utilities.COLOR_LIGHT_YELLOW
         # print the device information
         self._print_device_info_item('Build ID', device_info['Build ID'], title_color=title_color, value_color=sw_color)
-        self._print_device_info_item('Gaia Revision', device_info['Gaia Revision'], title_color=title_color, value_color=sw_color)
-        self._print_device_info_item('Gaia Date', device_info['Gaia Date'], title_color=title_color, value_color=sw_color)
-        self._print_device_info_item('Gecko Revision', device_info['Gecko Revision'], title_color=title_color, value_color=sw_color)
-        self._print_device_info_item('Gecko Version', device_info['Gecko Version'], title_color=title_color, value_color=sw_color)
-        self._print_device_info_item('Device Name', device_info['Device Name'], title_color=title_color, value_color=hw_color)
-        self._print_device_info_item('Firmware(Release)', device_info['Firmware(Release)'], title_color=title_color, value_color=hw_color)
-        self._print_device_info_item('Firmware(Incremental)', device_info['Firmware(Incremental)'], title_color=title_color, value_color=hw_color)
-        self._print_device_info_item('Firmware Date', device_info['Firmware Date'], title_color=title_color, value_color=hw_color)
+        self._print_device_info_item('Gaia Revision', device_info['Gaia Revision'], title_color=title_color,
+                                     value_color=sw_color)
+        self._print_device_info_item('Gaia Date', device_info['Gaia Date'], title_color=title_color,
+                                     value_color=sw_color)
+        self._print_device_info_item('Gecko Revision', device_info['Gecko Revision'], title_color=title_color,
+                                     value_color=sw_color)
+        self._print_device_info_item('Gecko Version', device_info['Gecko Version'], title_color=title_color,
+                                     value_color=sw_color)
+        self._print_device_info_item('Device Name', device_info['Device Name'], title_color=title_color,
+                                     value_color=hw_color)
+        self._print_device_info_item('Firmware(Release)', device_info['Firmware(Release)'], title_color=title_color,
+                                     value_color=hw_color)
+        self._print_device_info_item('Firmware(Incremental)', device_info['Firmware(Incremental)'],
+                                     title_color=title_color, value_color=hw_color)
+        self._print_device_info_item('Firmware Date', device_info['Firmware Date'], title_color=title_color,
+                                     value_color=hw_color)
         if device_info['Bootloader'] is not '':
-            self._print_device_info_item('Bootloader', device_info['Bootloader'], title_color=title_color, value_color=hw_color)
+            self._print_device_info_item('Bootloader', device_info['Bootloader'], title_color=title_color,
+                                         value_color=hw_color)
         print ''
 
     def _output_log(self):

@@ -19,6 +19,7 @@ class B2GHelper(object):
         """
         logger.info('Stop B2G.')
         output, retcode = AdbWrapper.adb_shell('stop b2g', serial=serial)
+        logger.debug('RetCode: {}, Stdout: {}'.format(retcode, output))
 
     @classmethod
     def start_b2g(cls, serial=None):
@@ -28,3 +29,4 @@ class B2GHelper(object):
         """
         logger.info('Start B2G.')
         output, retcode = AdbWrapper.adb_shell('start b2g', serial=serial)
+        logger.debug('RetCode: {}, Stdout: {}'.format(retcode, output))

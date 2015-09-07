@@ -15,7 +15,6 @@ from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 from util.b2g_helper import B2GHelper
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -50,22 +49,23 @@ class FullPrivilegeResetter(object):
         """
         # argument parser
         arg_parser = argparse.ArgumentParser(description='Enable/disable Certified Apps Debugging.',
-                                                  formatter_class=RawTextHelpFormatter,
-                                                  epilog=textwrap.dedent("""\
+                                             formatter_class=RawTextHelpFormatter,
+                                             epilog=textwrap.dedent("""\
                                                   Please enable "ADB and Devtools" of device.
                                                   Ref:
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE/Running_and_debugging_apps#Debugging_apps
                                                   """))
         arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
-                                     help=textwrap.dedent("""\
+                                help=textwrap.dedent("""\
                                      Directs command to the device or emulator with the
                                      given serial number. Overrides ANDROID_SERIAL
                                      environment variable. (default: %(default)s)
                                      """))
-        arg_parser.add_argument('--disable', action='store_true', dest='disable', default=False, help='Disable the privileges. (default: %(default)s)')
+        arg_parser.add_argument('--disable', action='store_true', dest='disable', default=False,
+                                help='Disable the privileges. (default: %(default)s)')
         arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
-                                     help=textwrap.dedent("""\
+                                help=textwrap.dedent("""\
                                      Turn on verbose output, with all the debug logger.
                                      (default: %(default)s)
                                      """))
@@ -122,12 +122,14 @@ class FullPrivilegeResetter(object):
                             logger.debug('line: [{}] to [{}]'.format(line, is_forbid))
                             if is_forbid in line:
                                 # do not need to restart if the setting isn't changed
-                                logger.info('The full privilege is already {}.'.format('enabled' if enable else 'disabled'))
+                                logger.info(
+                                    'The full privilege is already {}.'.format('enabled' if enable else 'disabled'))
                                 need_restart = False
                                 break
                             else:
                                 logger.info('Changing setting of pref.js file...')
-                                fw.write('user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
+                                fw.write(
+                                    'user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
                             match = True
                         else:
                             fw.write(line)
@@ -140,7 +142,8 @@ class FullPrivilegeResetter(object):
                             if need_restart:
                                 # adding setting when there is no setting and need to enable certapps
                                 logger.info('Adding setting of pref.js file...')
-                                fw.write('user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
+                                fw.write(
+                                    'user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
             if need_restart:
                 B2GHelper.stop_b2g(serial=serial)
                 try:

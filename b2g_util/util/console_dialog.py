@@ -6,6 +6,10 @@ import os
 import sys
 import string
 import getpass
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConsoleDialog(object):
@@ -26,11 +30,12 @@ class ConsoleDialog(object):
         """
         try:
             self.console_rows, self.console_columns = ConsoleDialog.get_terminal_size()
-        except:
+        except Exception as e:
+            logger.debug(e)
             self.console_rows = 23
             self.console_columns = 80
 
-    def menu(self, title, description, items_list, dialog_width=80, alternative_cmds_dict={}):
+    def menu(self, title, description, items_list, alternative_cmds_dict=None):
         """
         Create the menu dialog.
 
@@ -42,9 +47,10 @@ class ConsoleDialog(object):
         @param description: The description.
         @param items_list: The input item list. e.g. {1: 'foo', 2: 'bar'}.
         @param alternative_cmds_dict: The command list. e.g. {1: 'foo', 2: 'bar'}.
-        @param dialog_width: The width, default is 80.
         @return: {'SELECT': USER_INPUT, 'ITEMS': ALL_ITEMS_DICT}.
         """
+        if not alternative_cmds_dict:
+            alternative_cmds_dict = {}
         # print title
         self._print_title(title)
         # create items dict
@@ -57,13 +63,12 @@ class ConsoleDialog(object):
         # return selection
         return {'SELECT': response, 'ITEMS': items_dict}
 
-    def input_box(self, title, description, password=False, dialog_width=80):
+    def input_box(self, title, description, password=False):
         """
         Create the input dialog.
         @param title: The title.
         @param description: The description.
         @param password: Do not display the input when type is password, default is False.
-        @param dialog_width: The width, default is 80.
         @return: The input string from user.
         """
         # print title
@@ -74,13 +79,12 @@ class ConsoleDialog(object):
             response = self._get_dialog_input_with_desc(description)
         return response
 
-    def msg_box(self, title, description, press_enter_to_next=False, dialog_width=80):
+    def msg_box(self, title, description, press_enter_to_next=False):
         """
         Create the message dialog.
         @param title: The title.
         @param description: The description.
         @param press_enter_to_next: Waiting for pressing Enter, default is False.
-        @param dialog_width: The width, default is 80.
         """
         # print title
         self._print_title(title)
@@ -90,18 +94,14 @@ class ConsoleDialog(object):
         if press_enter_to_next:
             raw_input("Press Enter to continue...")
 
-    def yes_no(self, title, description, default_value='', dialog_width=80):
+    def yes_no(self, title, description, default_value=''):
         """
         Create the Yes/No dialog.
         @param title: The title.
         @param description: The description.
-        @param default_value: The default value, default is null string.
-        @param dialog_width: The width, default is 80.
+        @param default_value: The default value, 'y' or 'n'. Default is ''.
         @return: True or False from user.
         """
-        default = default_value.lower()
-        if default_value not in [self._YES_CMD_INDEX, self._NO_CMD_INDEX]:
-            default = ''
         question_mark = ' (y/n) '
         if default_value == self._YES_CMD_INDEX:
             question_mark = ' (Y/n) '
@@ -118,13 +118,15 @@ class ConsoleDialog(object):
         answer = True if response == self._YES_CMD_INDEX else False
         return answer
 
-    def _create_items_dict(self, items_list, alternative_cmds_dict={}):
+    def _create_items_dict(self, items_list, alternative_cmds_dict=None):
+        if not alternative_cmds_dict:
+            alternative_cmds_dict = {}
         items_dict = {self._QUIT_CMD_INDEX: {self._NAME: self._QUIT_CMD_NAME, self._TYPE: self._COMMAND_TYPE}}
         # create the items dict.
         index = 1
         for item in items_list:
             items_dict[str(index)] = {self._NAME: item, self._TYPE: self._ITEM_TYPE}
-            index = index + 1
+            index += 1
         # create the alternative options dict.
         if len(alternative_cmds_dict) > 0:
             temp_alternative_options_dict = alternative_cmds_dict.copy()
@@ -138,7 +140,7 @@ class ConsoleDialog(object):
             for option_key, option_value in temp_alternative_options_dict.items():
                 chars = string.lowercase.replace('q', '')
                 while chars[option_index] in items_dict.keys():
-                    option_index = option_index + 1
+                    option_index += 1
                 items_dict[chars[option_index]] = {self._NAME: option_value, self._TYPE: self._COMMAND_TYPE}
         return items_dict
 
@@ -146,7 +148,8 @@ class ConsoleDialog(object):
         def _key2int(x):
             try:
                 return int(x)
-            except:
+            except Exception as e:
+                logger.debug(e)
                 return x
         for index in sorted(items_dict, key=_key2int):
             if items_dict[index][self._TYPE] == self._ITEM_TYPE:
@@ -163,7 +166,8 @@ class ConsoleDialog(object):
         print self._SYMBOL_CHAR, title
         self._print_horizontal_lines()
 
-    def _get_dialog_input_with_desc(self, description):
+    @staticmethod
+    def _get_dialog_input_with_desc(description):
         response = raw_input('> ' + description + ': ')
         return response
 
@@ -176,7 +180,8 @@ class ConsoleDialog(object):
     def _update_terminal_size(self):
         try:
             self.console_rows, self.console_columns = ConsoleDialog.get_terminal_size()
-        except:
+        except Exception as e:
+            logger.debug(e)
             self.console_rows = 23
             self.console_columns = 80
 

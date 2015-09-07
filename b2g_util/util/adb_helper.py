@@ -22,7 +22,7 @@ class AdbWrapper(object):
         @raise exception: There is no ADB command in your system.
         """
         logger.debug('Checking ADB...')
-        if spawn.find_executable('adb') == None:
+        if spawn.find_executable('adb') is None:
             raise Exception('There is no "adb" in your environment PATH.')
         logger.debug('You have ADB.')
         return True
@@ -47,8 +47,8 @@ class AdbWrapper(object):
         output_list = re.split(r'\n+', output)
         # remove '', '* daemon not running. starting it now on port xxx *', and '* daemon started successfully *'
         output_list = [item for item in output_list if item and not item.startswith('* daemon')]
-        filter = re.compile(r'(^List of devices attached\s*|^\s+$)')
-        output_list = [i for i in output_list if not filter.search(i)]
+        msg_filter = re.compile(r'(^List of devices attached\s*|^\s+$)')
+        output_list = [i for i in output_list if not msg_filter.search(i)]
         output_list = [(re.split(r'\t', item)) for item in output_list if True]
         devices = {}
         for device in output_list:
@@ -129,7 +129,8 @@ class AdbWrapper(object):
             output = ''
             try:
                 returncode = int(shell_output[0])
-            except:
+            except Exception as e:
+                logger.debug(e)
                 # some command will stop device with no returncode. e.g. adb shell reboot recovery
                 returncode = 0
         else:
@@ -137,7 +138,8 @@ class AdbWrapper(object):
             output = shell_output[0]
             try:
                 returncode = int(shell_output[1])
-            except:
+            except Exception as e:
+                logger.debug(e)
                 returncode = 0
         logger.debug('RET: {0}'.format(output))
         logger.debug('RET CODE: {0}'.format(returncode))
@@ -159,7 +161,7 @@ class AdbWrapper(object):
         logger.debug('RET: {0}'.format(output))
         if stderr:
             logger.debug('ERR: {0}'.format(stderr))
-        if p.returncode is 0 and (not 'cannot' in output):
+        if p.returncode is 0 and ('cannot' not in output):
             if 'restarting' in output:
                 import time
                 time.sleep(1)
@@ -178,7 +180,8 @@ class AdbHelper(object):
     def get_serial(cls, serial_number):
         """
         Input the serial number.
-        This method will check with "ANDROID_SERIAL" environmental variable, and then return the serial number if the serial is avaiable.
+        This method will check with "ANDROID_SERIAL" environmental variable,
+        and then return the serial number if the serial is avaiable.
         When serial number is not avaiable, return None.
 
         ex:
@@ -204,6 +207,6 @@ class AdbHelper(object):
         if final_serial_number is not None:
             devices = AdbWrapper.adb_devices()
             logger.debug('Devices: {}'.format(devices))
-            if not final_serial_number in devices:
+            if final_serial_number not in devices:
                 raise Exception('Can not found {} device in devices list {}.'.format(final_serial_number, devices))
         return final_serial_number

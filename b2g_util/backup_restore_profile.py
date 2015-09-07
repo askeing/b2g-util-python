@@ -16,7 +16,6 @@ from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 from util.b2g_helper import B2GHelper
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -123,17 +122,27 @@ class BackupRestoreHelper(object):
         Handle the argument parse, and the return the instance itself.
         """
         # argument parser
-        arg_parser = argparse.ArgumentParser(description='Workaround for backing up and restoring Firefox OS profiles. (BETA)',
-                                                  formatter_class=ArgumentDefaultsHelpFormatter)
-        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
+        arg_parser = argparse.ArgumentParser(
+            description='Workaround for backing up and restoring Firefox OS profiles. (BETA)',
+            formatter_class=ArgumentDefaultsHelpFormatter)
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
+                                help='Directs command to the device or emulator with the given serial number. '
+                                     'Overrides ANDROID_SERIAL environment variable.')
         br_group = arg_parser.add_mutually_exclusive_group(required=True)
-        br_group.add_argument('-b', '--backup', action='store_true', dest='backup', default=False, help='Backup user profile.')
-        br_group.add_argument('-r', '--restore', action='store_true', dest='restore', default=False, help='Restore user profile.')
-        arg_parser.add_argument('--sdcard', action='store_true', dest='sdcard', default=False, help='Also backup/restore SD card.')
-        arg_parser.add_argument('--no-reboot', action='store_true', dest='no_reboot', default=False, help='Do not reboot B2G after backup/restore.')
-        arg_parser.add_argument('-p', '--profile-dir', action='store', dest='profile_dir', default='mozilla-profile', help='Specify the profile folder.')
-        arg_parser.add_argument('--skip-version-check', action='store_true', dest='skip_version_check', default=False, help='Turn off version check between backup profile and device.')
-        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
+        br_group.add_argument('-b', '--backup', action='store_true', dest='backup', default=False,
+                              help='Backup user profile.')
+        br_group.add_argument('-r', '--restore', action='store_true', dest='restore', default=False,
+                              help='Restore user profile.')
+        arg_parser.add_argument('--sdcard', action='store_true', dest='sdcard', default=False,
+                                help='Also backup/restore SD card.')
+        arg_parser.add_argument('--no-reboot', action='store_true', dest='no_reboot', default=False,
+                                help='Do not reboot B2G after backup/restore.')
+        arg_parser.add_argument('-p', '--profile-dir', action='store', dest='profile_dir', default='mozilla-profile',
+                                help='Specify the profile folder.')
+        arg_parser.add_argument('--skip-version-check', action='store_true', dest='skip_version_check', default=False,
+                                help='Turn off version check between backup profile and device.')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+                                help='Turn on verbose output, with all the debug logger.')
 
         # parse args and setup the logging
         args = arg_parser.parse_args()
@@ -244,8 +253,8 @@ class BackupRestoreHelper(object):
         webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
         for root, dirs, files in os.walk(webapps_dir):
             if (os.path.basename(root).startswith('marketplace') or
-                os.path.basename(root).endswith('gaiamobile.org') or
-                os.path.basename(root).endswith('allizom.org')):
+                    os.path.basename(root).endswith('gaiamobile.org') or
+                    os.path.basename(root).endswith('allizom.org')):
                 logger.info('Removing Mozilla webapps: [{0}]'.format(root))
                 shutil.rmtree(root)
         logger.info('Backup profile done.')
@@ -265,10 +274,12 @@ class BackupRestoreHelper(object):
         version_of_backup_float = float(version_of_backup.split('.')[0])
         version_of_device_float = float(version_of_device.split('.')[0])
         if version_of_backup_float <= version_of_device_float:
-            logger.info('Backup Profile {} <= Device Profile {}'.format(version_of_backup_float, version_of_device_float))
+            logger.info(
+                'Backup Profile {} <= Device Profile {}'.format(version_of_backup_float, version_of_device_float))
             return True
         else:
-            raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
+            raise Exception(
+                'Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
 
     @staticmethod
     def _get_profile_path(ini_file_path):
@@ -289,7 +300,8 @@ class BackupRestoreHelper(object):
             logger.debug('Load [{}]: {}'.format(ini_file_path, ini_config._sections))
             return profile_path
         except:
-            raise Exception('Can not get profile path from [{}], content: {}'.format(ini_file_path, ini_config._sections))
+            raise Exception(
+                'Can not get profile path from [{}], content: {}'.format(ini_file_path, ini_config._sections))
 
     @staticmethod
     def _get_version_from_profile(ini_file_path):
@@ -311,7 +323,8 @@ class BackupRestoreHelper(object):
             logger.info('The LastVersion of [{}] is [{}]'.format(ini_file_path, last_version))
             return last_version
         except:
-            raise Exception('Can not get last version from [{}], content: {}'.format(ini_file_path, ini_config._sections))
+            raise Exception(
+                'Can not get last version from [{}], content: {}'.format(ini_file_path, ini_config._sections))
 
     def _check_profile_version(self, local_dir, serial=None):
         """
@@ -331,8 +344,10 @@ class BackupRestoreHelper(object):
         logger.info('Checking profile...')
         # get local version
         if os.path.isdir(local_dir):
-            local_profile_path = self._get_profile_path(os.path.join(local_dir, self._LOCAL_DIR_B2G, self._FILE_PROFILE_INI))
-            version_of_backup = self._get_version_from_profile(os.path.join(local_dir, self._LOCAL_DIR_B2G, local_profile_path, self._FILE_COMPATIBILITY_INI))
+            local_profile_path = self._get_profile_path(
+                os.path.join(local_dir, self._LOCAL_DIR_B2G, self._FILE_PROFILE_INI))
+            version_of_backup = self._get_version_from_profile(
+                os.path.join(local_dir, self._LOCAL_DIR_B2G, local_profile_path, self._FILE_COMPATIBILITY_INI))
         else:
             raise Exception('Can not load profile from [{}]'.format(os.path.abspath(local_dir)))
         tmp_dir = None
@@ -343,13 +358,22 @@ class BackupRestoreHelper(object):
             try:
                 AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, self._FILE_PROFILE_INI), tmp_dir, serial=serial)
             except:
-                raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
+                raise Exception(
+                    'Can not pull {2} from {0} to {1}. '
+                    'Please run with --skip-version-check if you want to restore.'.format(
+                        self._REMOTE_DIR_B2G, tmp_dir, self._FILE_PROFILE_INI))
             remote_profile_path = self._get_profile_path(os.path.join(tmp_dir, self._FILE_PROFILE_INI))
             try:
-                AdbWrapper.adb_pull(os.path.join(self._REMOTE_DIR_B2G, remote_profile_path, self._FILE_COMPATIBILITY_INI), tmp_dir, serial=serial)
+                AdbWrapper.adb_pull(
+                    os.path.join(self._REMOTE_DIR_B2G, remote_profile_path, self._FILE_COMPATIBILITY_INI), tmp_dir,
+                    serial=serial)
             except:
-                raise Exception('Can not pull {2} from {0} to {1}. Please run with --skip-version-check if you want to restore.'.format(self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
-            version_of_device = self._get_version_from_profile(os.path.join(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI)))
+                raise Exception(
+                    'Can not pull {2} from {0} to {1}. '
+                    'Please run with --skip-version-check if you want to restore.'.format(
+                        self._REMOTE_DIR_B2G, tmp_dir, self._FILE_COMPATIBILITY_INI))
+            version_of_device = self._get_version_from_profile(
+                os.path.join(os.path.join(tmp_dir, self._FILE_COMPATIBILITY_INI)))
             # compare
             return self._compare_version(version_of_backup, version_of_device)
         finally:
@@ -435,7 +459,8 @@ class BackupRestoreHelper(object):
                 logger.debug('TEMP Foler: {}'.format(tmp_dir))
                 # check the local profile folder
                 if os.path.isdir(self.profile_dir):
-                    raise Exception('[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.profile_dir)))
+                    raise Exception(
+                        '[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.profile_dir)))
                 # Stop B2G
                 B2GHelper.stop_b2g(serial=device_serial)
                 # Backup User Profile
