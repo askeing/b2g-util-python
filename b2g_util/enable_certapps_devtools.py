@@ -22,36 +22,56 @@ logger = logging.getLogger(__name__)
 
 
 class FullPrivilegeResetter(object):
-    '''
+    """
     Enable/disable Certified Apps Debugging.
-    '''
+    """
 
     def __init__(self, **kwargs):
+        self.serial = None
+        self.disable = False
+
+    def set_serial(self, serial):
+        """
+        Setup the serial number.
+        @param serial: the given serial number.
+        """
+        self.serial = serial
+        logger.debug('Set serial: {}'.format(self.serial))
+
+    def set_disable(self, flag):
+        """
+        Setup the disable flag.
+        @param flag: True or False.
+        """
+        self.disable = flag
+        logger.debug('Set disable: {}'.format(self.disable))
+
+    def cli(self):
+        """
+        Handle the argument parse, and the return the instance itself.
+        """
+        # argument parser
         self.arg_parser = argparse.ArgumentParser(description='Enable/disable Certified Apps Debugging.',
                                                   formatter_class=RawTextHelpFormatter,
-                                                  epilog=textwrap.dedent('''\
+                                                  epilog=textwrap.dedent("""\
                                                   Please enable "ADB and Devtools" of device.
                                                   Ref:
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE/Running_and_debugging_apps#Debugging_apps
-                                                  '''))
+                                                  """))
         self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
-                                     help=textwrap.dedent('''\
+                                     help=textwrap.dedent("""\
                                      Directs command to the device or emulator with the
                                      given serial number. Overrides ANDROID_SERIAL
                                      environment variable. (default: %(default)s)
-                                     '''))
+                                     """))
         self.arg_parser.add_argument('--disable', action='store_true', dest='disable', default=False, help='Disable the privileges. (default: %(default)s)')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
-                                     help=textwrap.dedent('''\
+                                     help=textwrap.dedent("""\
                                      Turn on verbose output, with all the debug logger.
                                      (default: %(default)s)
-                                     '''))
-
-    def prepare(self):
-        '''
-        parse args and setup the logging
-        '''
+                                     """))
+        # parse args and setup the logging
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -60,15 +80,21 @@ class FullPrivilegeResetter(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
+        # check ADB
         AdbWrapper.check_adb()
+        # assign variable
+        self.set_serial(self.args.serial)
+        self.set_disable(self.args.disable)
+        # return instance
+        return self
 
-    def set_certapps(self, enable=True, serial=None):
-        '''
+    def setup_certapps(self, enable=True, serial=None):
+        """
         Set the devtools permission for certapps.
         @param enable: True will turn on the permission. False will turn off the permission.
         @param serial: device serial number. (optional)
         @raise exception: When it cannot pulling/pushing the pref.js file of device.
-        '''
+        """
         AdbWrapper.adb_root(serial=serial)
         logger.info('{} Full Privilege for WebIDE...'.format('Enabling' if enable else 'Disabling'))
 
@@ -128,32 +154,31 @@ class FullPrivilegeResetter(object):
             shutil.rmtree(tmp_dir)
 
     def run(self):
-        '''
+        """
         Entry point.
-        '''
-        self.prepare()
+        """
         devices = AdbWrapper.adb_devices()
 
-        is_enable = not self.args.disable
+        is_enable = not self.disable
         if len(devices) == 0:
             raise Exception('No device.')
         elif len(devices) >= 1:
-            final_serial = AdbHelper.get_serial(self.args.serial)
+            final_serial = AdbHelper.get_serial(self.serial)
             if final_serial is None:
                 if len(devices) == 1:
                     logger.debug('No serial, and only one device')
-                    self.set_certapps(enable=is_enable, serial=final_serial)
+                    self.setup_certapps(enable=is_enable, serial=final_serial)
                 else:
                     logger.debug('No serial, but there are more than one device')
                     raise Exception('Please specify the device by --serial option.')
             else:
                 print('Serial: {0} (State: {1})'.format(final_serial, devices[final_serial]))
-                self.set_certapps(enable=is_enable, serial=final_serial)
+                self.setup_certapps(enable=is_enable, serial=final_serial)
 
 
 def main():
     try:
-        FullPrivilegeResetter().run()
+        FullPrivilegeResetter().cli().run()
     except Exception as e:
         logger.error(e)
         exit(1)
