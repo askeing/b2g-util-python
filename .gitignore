@@ -1,6 +1,14 @@
 # This project's things
 env-*
+docs/
+mozilla-profile/
 
+
+# OS X
+.DS_Store
+
+# PyCharm
+.idea/
 
 # Vim
 [._]*.s[a-w][a-z]
