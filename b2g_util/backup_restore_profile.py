@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 class BackupRestoreHelper(object):
-    '''
+    """
     Workaround for backing up and restoring Firefox OS profiles. (BETA)
-    '''
+    """
 
     def __init__(self, **kwargs):
         self._FILE_PROFILE_INI = 'profiles.ini'
@@ -40,7 +40,90 @@ class BackupRestoreHelper(object):
         self._REMOTE_FILE_WIFI_OWNER = 'system:wifi'
         self._REMOTE_DIR_B2G = '/data/b2g/mozilla'
         self._REMOTE_DIR_DATA = '/data/local'
+        # default settings
+        self.serial = None
+        self.backup = False
+        self.restore = False
+        self.sdcard = False
+        self.no_reboot = False
+        self.profile_dir = 'mozilla-profile'
+        self.skip_version_check = False
 
+    def set_serial(self, serial):
+        """
+        Setup the serial number.
+        @param serial: the given serial number.
+        """
+        self.serial = serial
+        logger.debug('Set serial: {}'.format(self.serial))
+
+    def set_backup(self, flag):
+        """
+        Setup the backup flag. If backup is enabled, then resotre will be disable.
+        @param flag: True or Flase.
+        """
+        if flag:
+            self.backup = True
+            logger.debug('Set backup: {}'.format(self.backup))
+            if self.restore:
+                self.restore = False
+                logger.debug('Set restore: {}, due to backup is enabled'.format(self.restore))
+        else:
+            self.backup = False
+            logger.debug('Set backup: {}'.format(self.backup))
+
+    def set_restore(self, flag):
+        """
+        Setup the restore flag. If restore is enabled, then backup will be disable.
+        @param flag: True or Flase.
+        """
+        if flag:
+            self.restore = True
+            logger.debug('Set restore: {}'.format(self.restore))
+            if self.backup:
+                self.backup = False
+                logger.debug('Set backup: {}, due to restore is enabled'.format(self.backup))
+        else:
+            self.restore = False
+            logger.debug('Set restore: {}'.format(self.restore))
+
+    def set_sdcard(self, flag):
+        """
+        Setup backup or resotre SDCard flag.
+        @param flag: True or Flase.
+        """
+        self.sdcard = flag
+        logger.debug('Set sdcard: {}'.format(self.sdcard))
+
+    def set_no_reboot(self, flag):
+        """
+        Setup no_reboot flag.
+        @param flag: True or Flase.
+        """
+        self.no_reboot = flag
+        logger.debug('Set no_reboot: {}'.format(self.no_reboot))
+
+    def set_profile_dir(self, profile_dir):
+        """
+        Setup profile_dir path.
+        @param flag: The path of profile folder.
+        """
+        self.profile_dir = profile_dir
+        logger.debug('Set profile_dir: {}'.format(self.profile_dir))
+
+    def set_skip_version_check(self, flag):
+        """
+        Setup skip_version_check flag.
+        @param flag: True or Flase.
+        """
+        self.skip_version_check = flag
+        logger.debug('Set skip_version_check: {}'.format(self.skip_version_check))
+
+    def cli(self):
+        """
+        Handle the argument parse, and the return the instance itself.
+        """
+        # argument parser
         self.arg_parser = argparse.ArgumentParser(description='Workaround for backing up and restoring Firefox OS profiles. (BETA)',
                                                   formatter_class=ArgumentDefaultsHelpFormatter)
         self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None, help='Directs command to the device or emulator with the given serial number. Overrides ANDROID_SERIAL environment variable.')
@@ -53,10 +136,7 @@ class BackupRestoreHelper(object):
         self.arg_parser.add_argument('--skip-version-check', action='store_true', dest='skip_version_check', default=False, help='Turn off version check between backup profile and device.')
         self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False, help='Turn on verbose output, with all the debug logger.')
 
-    def prepare(self):
-        '''
-        parse args and setup the logging
-        '''
+        # parse args and setup the logging
         self.args = self.arg_parser.parse_args()
         # setup the logging config
         if self.args.verbose is True:
@@ -65,14 +145,27 @@ class BackupRestoreHelper(object):
         else:
             formatter = '%(levelname)s: %(message)s'
             logging.basicConfig(level=logging.INFO, format=formatter)
+        # check ADB
         AdbWrapper.check_adb()
+        # assign the variable
+        self.set_serial(self.args.serial)
+        if self.args.backup:
+            self.set_backup(self.args.backup)
+        elif self.args.restore:
+            self.set_restore(self.args.restore)
+        self.set_sdcard(self.args.sdcard)
+        self.set_no_reboot(self.args.no_reboot)
+        self.set_profile_dir(self.args.profile_dir)
+        self.set_skip_version_check(self.args.skip_version_check)
+        # return instance
+        return self
 
     def backup_sdcard(self, local_dir, serial=None):
-        '''
+        """
         Backup data from device's SDCard to local folder.
 
         @param local_dir: the target local folder, will store data from device's SDCard to this folder.
-        '''
+        """
         logger.info('Backing up SD card...')
         # try to get the /sdcard folder on device
         output, retcode = AdbWrapper.adb_shell('ls -d {0}; echo $?'.format(self._REMOTE_DIR_SDCARD), serial=serial)
@@ -93,11 +186,11 @@ class BackupRestoreHelper(object):
             logger.info(ret_msg)
 
     def restore_sdcard(self, local_dir, serial=None):
-        '''
+        """
         Restore data from local folder to device's SDCard.
 
         @param local_dir: the source local folder, will get data from this folder and than restore to device's SDCard.
-        '''
+        """
         logger.info('Restoring SD card...')
         target_dir = os.path.join(local_dir, self._LOCAL_DIR_SDCARD)
         if os.path.isdir(target_dir):
@@ -111,12 +204,12 @@ class BackupRestoreHelper(object):
             logger.info('{0}: No such file or directory'.format(target_dir))
 
     def backup_profile(self, local_dir, serial=None):
-        '''
+        """
         Backup B2G user profile from device to local folder.
 
         @param local_dir: the target local folder, the backup data will store to this folder.
         @param serial: device serial number. (optional)
-        '''
+        """
         logger.info('Backing up profile...')
         # Backup Wifi
         wifi_dir = os.path.join(local_dir, self._LOCAL_DIR_WIFI)
@@ -154,7 +247,7 @@ class BackupRestoreHelper(object):
         logger.info('Backup profile done.')
 
     def _compare_version(self, version_of_backup, version_of_device):
-        '''
+        """
         Compare two B2G versions.
 
         @param version_of_backup: the local backup profile's version string.
@@ -163,7 +256,7 @@ class BackupRestoreHelper(object):
         @return: True if the backup profile's version less than or equal to device's version.
 
         @raise exception: if  the backup profile's version large than device's version.
-        '''
+        """
         version_of_backup_float = float(version_of_backup.split('.')[0])
         version_of_device_float = float(version_of_device.split('.')[0])
         if version_of_backup_float <= version_of_device_float:
@@ -173,7 +266,7 @@ class BackupRestoreHelper(object):
             raise Exception('Backup Profile {} > Device Profile {}'.format(version_of_backup_float, version_of_device_float))
 
     def _get_profile_path(self, ini_file_path):
-        '''
+        """
         Get the B2G profile's folder name from profile.ini file.
         (e.g. /data/b2g/mozilla/profiles.ini on device.)
 
@@ -182,7 +275,7 @@ class BackupRestoreHelper(object):
         @return: the profile folder name.
 
         @raise exception: if cannot get the profile folder name.
-        '''
+        """
         ini_config = ConfigParser.ConfigParser()
         try:
             ini_config.read(ini_file_path)
@@ -193,7 +286,7 @@ class BackupRestoreHelper(object):
             raise Exception('Can not get profile path from [{}], content: {}'.format(ini_file_path, ini_config._sections))
 
     def _get_version_from_profile(self, ini_file_path):
-        '''
+        """
         Get the B2G last version from compatibility.ini file.
         (e.g. /data/b2g/mozilla/<PROFILE_FOLDER>/compatibility.ini on device.)
 
@@ -202,7 +295,7 @@ class BackupRestoreHelper(object):
         @return: the last version.
 
         @raise exception: if cannot get the version.
-        '''
+        """
         ini_config = ConfigParser.ConfigParser()
         try:
             ini_config.read(ini_file_path)
@@ -214,7 +307,7 @@ class BackupRestoreHelper(object):
             raise Exception('Can not get last version from [{}], content: {}'.format(ini_file_path, ini_config._sections))
 
     def _check_profile_version(self, local_dir, serial=None):
-        '''
+        """
         Check the versions of backup and device.
         The lower backup can restore to device. However the higher backup cannot.
 
@@ -224,8 +317,8 @@ class BackupRestoreHelper(object):
         @return: True if backup version is lower than device's.
 
         @raise exception: if cannot load profiles or versions.
-        '''
-        if self.args.skip_version_check:
+        """
+        if self.skip_version_check:
             logger.info('Skip version check.')
             return True
         logger.info('Checking profile...')
@@ -257,12 +350,12 @@ class BackupRestoreHelper(object):
             logger.debug('TEMP Folder for check profile removed: {}'.format(tmp_dir))
 
     def restore_profile(self, local_dir, serial=None):
-        '''
+        """
         Restore B2G user profile from local folder to device.
 
         @param local_dir: the source local folder, the backup data will restore from this folder.
         @param serial: device serial number. (optional)
-        '''
+        """
         logger.info('Restoring profile...')
         if os.path.isdir(local_dir):
             # Restore Wifi
@@ -297,16 +390,15 @@ class BackupRestoreHelper(object):
             logger.info('{0}: No such file or directory'.format(local_dir))
 
     def run(self):
-        '''
+        """
         Entry point.
-        '''
-        self.prepare()
+        """
         # get the device's serial number
         devices = AdbWrapper.adb_devices()
         if len(devices) == 0:
             raise Exception('No device.')
         else:
-            device_serial = AdbHelper.get_serial(self.args.serial)
+            device_serial = AdbHelper.get_serial(self.serial)
             if device_serial is None:
                 if len(devices) == 1:
                     logger.debug('No serial, and only one device')
@@ -323,46 +415,46 @@ class BackupRestoreHelper(object):
         if device_serial:
             logger.info('Target device [{0}]'.format(device_serial))
         # Backup
-        if self.args.backup:
+        if self.backup:
             try:
                 # Create temp folder
                 tmp_dir = tempfile.mkdtemp(prefix='backup_restore_')
                 logger.debug('TEMP Foler: {}'.format(tmp_dir))
                 # check the local profile folder
-                if os.path.isdir(self.args.profile_dir):
-                    raise Exception('[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.args.profile_dir)))
+                if os.path.isdir(self.profile_dir):
+                    raise Exception('[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.profile_dir)))
                 # Stop B2G
                 B2GHelper.stop_b2g(serial=device_serial)
                 # Backup User Profile
                 self.backup_profile(local_dir=tmp_dir, serial=device_serial)
                 # Backup SDCard
-                if self.args.sdcard:
+                if self.sdcard:
                     self.backup_sdcard(local_dir=tmp_dir, serial=device_serial)
                 # Copy backup files from temp folder to target folder
-                if os.path.isdir(self.args.profile_dir):
-                    logger.error('Removing [{0}] folder...'.format(os.path.abspath(self.args.profile_dir)))
-                    shutil.rmtree(self.args.profile_dir)
-                logger.info('Copy profile from [{0}] to [{1}].'.format(tmp_dir, self.args.profile_dir))
-                shutil.copytree(tmp_dir, self.args.profile_dir)
+                if os.path.isdir(self.profile_dir):
+                    logger.error('Removing [{0}] folder...'.format(os.path.abspath(self.profile_dir)))
+                    shutil.rmtree(self.profile_dir)
+                logger.info('Copy profile from [{0}] to [{1}].'.format(tmp_dir, self.profile_dir))
+                shutil.copytree(tmp_dir, self.profile_dir)
                 # Start B2G
-                if not self.args.no_reboot:
+                if not self.no_reboot:
                     B2GHelper.start_b2g(serial=device_serial)
             finally:
                 logger.debug('Removing [{0}] folder...'.format(tmp_dir))
                 shutil.rmtree(tmp_dir)
         # Restore
-        elif self.args.restore:
+        elif self.restore:
             # Checking the Version of Profile
-            if self._check_profile_version(local_dir=self.args.profile_dir, serial=device_serial):
+            if self._check_profile_version(local_dir=self.profile_dir, serial=device_serial):
                 # Stop B2G
                 B2GHelper.stop_b2g(serial=device_serial)
                 # Restore User Profile
-                self.restore_profile(local_dir=self.args.profile_dir, serial=device_serial)
+                self.restore_profile(local_dir=self.profile_dir, serial=device_serial)
                 # Restore SDCard
-                if self.args.sdcard:
-                    self.restore_sdcard(local_dir=self.args.profile_dir, serial=device_serial)
+                if self.sdcard:
+                    self.restore_sdcard(local_dir=self.profile_dir, serial=device_serial)
                 # Start B2G
-                if not self.args.no_reboot:
+                if not self.no_reboot:
                     B2GHelper.start_b2g(serial=device_serial)
             else:
                 logger.error('The version on device is smaller than backup\'s version.')
@@ -370,7 +462,7 @@ class BackupRestoreHelper(object):
 
 def main():
     try:
-        BackupRestoreHelper().run()
+        BackupRestoreHelper().cli().run()
     except Exception as e:
         logger.error(e)
         exit(1)
