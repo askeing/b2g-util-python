@@ -24,7 +24,7 @@ class FullPrivilegeResetter(object):
     Enable/disable Certified Apps Debugging.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         self.serial = None
         self.disable = False
 
@@ -49,7 +49,7 @@ class FullPrivilegeResetter(object):
         Handle the argument parse, and the return the instance itself.
         """
         # argument parser
-        self.arg_parser = argparse.ArgumentParser(description='Enable/disable Certified Apps Debugging.',
+        arg_parser = argparse.ArgumentParser(description='Enable/disable Certified Apps Debugging.',
                                                   formatter_class=RawTextHelpFormatter,
                                                   epilog=textwrap.dedent("""\
                                                   Please enable "ADB and Devtools" of device.
@@ -57,22 +57,22 @@ class FullPrivilegeResetter(object):
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE
                                                   - https://developer.mozilla.org/en-US/docs/Tools/WebIDE/Running_and_debugging_apps#Debugging_apps
                                                   """))
-        self.arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
+        arg_parser.add_argument('-s', '--serial', action='store', dest='serial', default=None,
                                      help=textwrap.dedent("""\
                                      Directs command to the device or emulator with the
                                      given serial number. Overrides ANDROID_SERIAL
                                      environment variable. (default: %(default)s)
                                      """))
-        self.arg_parser.add_argument('--disable', action='store_true', dest='disable', default=False, help='Disable the privileges. (default: %(default)s)')
-        self.arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
+        arg_parser.add_argument('--disable', action='store_true', dest='disable', default=False, help='Disable the privileges. (default: %(default)s)')
+        arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
                                      help=textwrap.dedent("""\
                                      Turn on verbose output, with all the debug logger.
                                      (default: %(default)s)
                                      """))
         # parse args and setup the logging
-        self.args = self.arg_parser.parse_args()
+        args = arg_parser.parse_args()
         # setup the logging config
-        if self.args.verbose is True:
+        if args.verbose is True:
             verbose_formatter = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             logging.basicConfig(level=logging.DEBUG, format=verbose_formatter)
         else:
@@ -81,12 +81,13 @@ class FullPrivilegeResetter(object):
         # check ADB
         AdbWrapper.check_adb()
         # assign variable
-        self.set_serial(self.args.serial)
-        self.set_disable(self.args.disable)
+        self.set_serial(args.serial)
+        self.set_disable(args.disable)
         # return instance
         return self
 
-    def setup_certapps(self, enable=True, serial=None):
+    @staticmethod
+    def setup_certapps(enable=True, serial=None):
         """
         Set the devtools permission for certapps.
         @param enable: True will turn on the permission. False will turn off the permission.
@@ -97,6 +98,7 @@ class FullPrivilegeResetter(object):
         logger.info('{} Full Privilege for WebIDE...'.format('Enabling' if enable else 'Disabling'))
 
         need_restart = True
+        tmp_dir = None
         try:
             tmp_dir = tempfile.mkdtemp(prefix='enablecertapps_')
             # get profile folder name xxx.default under /data/b2g/mozilla/
@@ -149,7 +151,9 @@ class FullPrivilegeResetter(object):
         finally:
             if need_restart:
                 B2GHelper.start_b2g(serial=serial)
-            shutil.rmtree(tmp_dir)
+            if tmp_dir:
+                shutil.rmtree(tmp_dir)
+                logger.debug('Remove {}.'.format(tmp_dir))
 
     def run(self):
         """
