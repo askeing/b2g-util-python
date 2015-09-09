@@ -1,14 +1,20 @@
 Release History
 ---------------
 
-0.0.9 (2015-09-09)
-++++++++++++++++++
+0.0.10 (2015-09-09)
++++++++++++++++++++
 
 **Features and Improvements**
 
 - Add b2g_shallow_flash tool.
 - Add adb remount and adb wait-for-device.
 - Modify the decompressor's method to classmethod.
+
+
+0.0.9 (2015-09-09)
+++++++++++++++++++
+
+- missing some files...
 
 
 0.0.8 (2015-09-07)
