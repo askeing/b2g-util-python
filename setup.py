@@ -28,7 +28,7 @@ if __name__ == '__main__':
         version=VERSION,
         description='B2G Utilities',
         long_description=long_description,
-        keywords='Mozilla B2G FirefoxOS FxOS utilities ',
+        keywords='mozilla b2g firefoxos fxos firefox utilities ',
         author='Askeing Yen',
         author_email='askeing@gmail.com',
         url='https://github.com/askeing/b2g-util-python',
