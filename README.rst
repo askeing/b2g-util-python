@@ -29,6 +29,14 @@ Tools Usages
 
 There are some available b2g tools.
 
+- b2g_backup_restore_profile
+- b2g_check_versions
+- b2g_enable_certapps_devtools
+- b2g_get_crashreports
+- b2g_reset_phone
+- b2g_shallow_flash
+
+
 b2g_backup_restore_profile
 ++++++++++++++++++++++++++
 
@@ -144,6 +152,31 @@ b2g_reset_phone
                             Directs command to the device or emulator with the
                             given serial number. Overrides ANDROID_SERIAL
                             environment variable. (default: None)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+                            (default: False)
+
+
+b2g_shallow_flash
++++++++++++++++++
+
+.. code-block:: bash
+
+    usage: b2g_shallow_flash [-h] [-s SERIAL] [-g GAIA] [-G GECKO]
+                             [--keep-profile] [-v]
+
+    Workaround for shallow flash Gaia or Gecko into device.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -s SERIAL, --serial SERIAL
+                            Directs command to the device or emulator with the
+                            given serial number. Overrides ANDROID_SERIAL
+                            environment variable. (default: None)
+      -g GAIA, --gaia GAIA  Specify the Gaia package. (zip format) (default: None)
+      -G GECKO, --gecko GECKO
+                            Specify the Gecko package. (tar.gz format) (default:
+                            None)
+      --keep-profile        Keep user profile of device. (BETA) (default: False)
       -v, --verbose         Turn on verbose output, with all the debug logger.
                             (default: False)
 
