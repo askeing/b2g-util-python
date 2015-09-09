@@ -44,5 +44,6 @@ if __name__ == '__main__':
         b2g_enable_certapps_devtools = b2g_util.enable_certapps_devtools:main
         b2g_get_crashreports = b2g_util.get_crashreports:main
         b2g_reset_phone = b2g_util.reset_phone:main
+        b2g_shallow_flash = b2g_util.shallow_flash:main
         """,
     )
