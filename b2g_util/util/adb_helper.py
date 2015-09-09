@@ -5,6 +5,7 @@
 import os
 import re
 import logging
+import threading
 import subprocess
 from distutils import spawn
 
@@ -172,6 +173,61 @@ class AdbWrapper(object):
             logger.debug('adb root failed')
             logger.warning('{}'.format(output))
             return False
+
+    @classmethod
+    def adb_remount(cls, serial=None):
+        """
+        Remounts the /system partition on the device read-write
+        @return: True if succeeded. False if failed.
+        """
+        if serial is None:
+            cmd = 'adb remount'
+        else:
+            cmd = 'adb -s %s remount' % (serial,)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        output, stderr = p.communicate()
+        logger.debug('CMD: {0}'.format(cmd))
+        logger.debug('RET: {0}'.format(output))
+        if stderr:
+            logger.debug('ERR: {0}'.format(stderr))
+        if p.returncode is 0:
+            if 'remount succeeded' in output:
+                logger.info('{}'.format(output))
+                return True
+            else:
+                logger.warning('{}'.format(output))
+                return False
+        else:
+            logger.debug('adb remount failed')
+            raise Exception('{}'.format({'STDOUT': output, 'STDERR': stderr}))
+
+    @classmethod
+    def adb_wait_for_device(cls, timeout=60, serial=None):
+        """
+        block until device is online. (default timeout is 60 seconds)
+        @param timeout: specify the timeout for the operation in seconds. Default is 60 seconds.
+        @raise exception: when running for more than timeout seconds.
+        """
+        thread = None
+        cls.p_wait_for_device = None
+
+        def _wait_for_device():
+            logger.info('Starting adb wait-for-device, timeout: {}, serial: {}'.format(timeout, serial))
+            if serial is None:
+                cmd = 'adb wait-for-device'
+            else:
+                cmd = 'adb -s %s wait-for-device' % (serial,)
+            cls.p_wait_for_device = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            cls.p_wait_for_device.communicate()
+        thread = threading.Thread(target=_wait_for_device)
+        thread.start()
+        thread.join(timeout)
+        if thread.is_alive():
+            logger.debug('Terminating wait-for-device process.')
+            cls.p_wait_for_device.terminate()
+            cls.p_wait_for_device = None
+            raise Exception('adb wait-for-device timeout, timeout {}, serial: {}'.format(timeout, serial))
+        return True
 
 
 class AdbHelper(object):
