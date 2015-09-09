@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 class Decompressor(object):
 
-    def unzip(self, source_file, dest_folder, status_callback=None):
+    @classmethod
+    def unzip(cls, source_file, dest_folder):
         try:
             logger.info('Unzip {} to {}'.format(source_file, dest_folder))
             zip_file = zipfile.ZipFile(source_file)
@@ -24,7 +25,8 @@ class Decompressor(object):
         except Exception as e:
             logger.error('Unzip {} Error'.format(source_file))
 
-    def untar(self, source_file, dest_folder, status_callback=None):
+    @classmethod
+    def untar(cls, source_file, dest_folder):
         try:
             logger.info('Untar {} to {}'.format(source_file, dest_folder))
             tar_file = tarfile.open(source_file)
@@ -34,6 +36,7 @@ class Decompressor(object):
         except Exception as e:
             logger.error('Unzip {} Error'.format(source_file))
 
-    def ensure_folder(self, folder):
+    @classmethod
+    def ensure_folder(cls, folder):
         if not os.path.isdir(folder):
             os.makedirs(folder)
