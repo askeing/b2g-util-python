@@ -227,6 +227,7 @@ class AdbWrapper(object):
             cls.p_wait_for_device.terminate()
             cls.p_wait_for_device = None
             raise Exception('adb wait-for-device timeout, timeout {}, serial: {}'.format(timeout, serial))
+        return True
 
 
 class AdbHelper(object):
