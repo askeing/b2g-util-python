@@ -469,9 +469,6 @@ class BackupRestoreHelper(object):
                 if self.sdcard:
                     self.backup_sdcard(local_dir=tmp_dir, serial=device_serial)
                 # Copy backup files from temp folder to target folder
-                if os.path.isdir(self.profile_dir):
-                    logger.error('Removing [{0}] folder...'.format(os.path.abspath(self.profile_dir)))
-                    shutil.rmtree(self.profile_dir)
                 logger.info('Copy profile from [{0}] to [{1}].'.format(tmp_dir, self.profile_dir))
                 shutil.copytree(tmp_dir, self.profile_dir)
                 # Start B2G
