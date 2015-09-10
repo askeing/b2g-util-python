@@ -27,6 +27,7 @@ class BackupRestoreHelper(object):
     def __init__(self):
         self._FILE_PROFILE_INI = 'profiles.ini'
         self._FILE_COMPATIBILITY_INI = 'compatibility.ini'
+        self._FILE_PERF_JS = 'prefs.js'
         self._LOCAL_DIR_SDCARD = 'sdcard'
         self._LOCAL_DIR_WIFI = 'wifi'
         self._LOCAL_FILE_WIFI = 'wifi/wpa_supplicant.conf'
@@ -249,15 +250,21 @@ class BackupRestoreHelper(object):
         except Exception as e:
             logger.debug(e)
             logger.error('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_DATA, datalocal_dir))
-        # TODO: It seems like we should keep marketplace apps for shallow flashing. Need more investigation.
-        # Remove "marketplace" app and "gaiamobile.org" apps from webapps
-        #webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
-        #for root, dirs, files in os.walk(webapps_dir):
-        #    if (os.path.basename(root).startswith('marketplace') or
-        #            os.path.basename(root).endswith('gaiamobile.org') or
-        #            os.path.basename(root).endswith('allizom.org')):
-        #        logger.info('Removing Mozilla webapps: [{0}]'.format(root))
-        #        shutil.rmtree(root)
+
+        # remove gecko.mstone value, so that gecko can check the apps under /system/b2g/webapps again.
+        # (Thanks SC Chien's help!)
+        local_profile_path = self._get_profile_path(os.path.join(b2g_mozilla_dir, self._FILE_PROFILE_INI))
+        local_perf = os.path.join(b2g_mozilla_dir, local_profile_path, self._FILE_PERF_JS)
+        perf_contents = []
+        with open(local_perf, 'r') as f:
+            for line in f.readlines():
+                if 'gecko.mstone' not in line:
+                    perf_contents.append(line)
+                else:
+                    logger.debug('Remove from {}: {}'.format(local_perf, line))
+        with open(local_perf, 'w') as f:
+            for line in perf_contents:
+                f.write(line)
         logger.info('Backup profile done.')
 
     @staticmethod
