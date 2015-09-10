@@ -249,14 +249,15 @@ class BackupRestoreHelper(object):
         except Exception as e:
             logger.debug(e)
             logger.error('Can not pull files from {0} to {1}'.format(self._REMOTE_DIR_DATA, datalocal_dir))
+        # TODO: It seems like we should keep marketplace apps for shallow flashing. Need more investigation.
         # Remove "marketplace" app and "gaiamobile.org" apps from webapps
-        webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
-        for root, dirs, files in os.walk(webapps_dir):
-            if (os.path.basename(root).startswith('marketplace') or
-                    os.path.basename(root).endswith('gaiamobile.org') or
-                    os.path.basename(root).endswith('allizom.org')):
-                logger.info('Removing Mozilla webapps: [{0}]'.format(root))
-                shutil.rmtree(root)
+        #webapps_dir = datalocal_dir + self._LOCAL_DIR_DATA_APPS
+        #for root, dirs, files in os.walk(webapps_dir):
+        #    if (os.path.basename(root).startswith('marketplace') or
+        #            os.path.basename(root).endswith('gaiamobile.org') or
+        #            os.path.basename(root).endswith('allizom.org')):
+        #        logger.info('Removing Mozilla webapps: [{0}]'.format(root))
+        #        shutil.rmtree(root)
         logger.info('Backup profile done.')
 
     @staticmethod
@@ -434,22 +435,22 @@ class BackupRestoreHelper(object):
         if len(devices) == 0:
             raise Exception('No device.')
         else:
-            device_serial = AdbHelper.get_serial(self.serial)
-            if device_serial is None:
+            self.serial = AdbHelper.get_serial(self.serial)
+            if self.serial is None:
                 if len(devices) == 1:
                     logger.debug('No serial, and only one device')
                 else:
                     logger.debug('No serial, but there are more than one device')
                     raise Exception('Please specify the device by --serial option.')
             else:
-                logger.debug('Setup serial to [{0}]'.format(device_serial))
+                logger.debug('Setup serial to [{0}]'.format(self.serial))
 
         # checking the adb root for backup/restore
-        if not AdbWrapper.adb_root(serial=device_serial):
+        if not AdbWrapper.adb_root(serial=self.serial):
             raise Exception('No root permission for backup and resotre.')
 
-        if device_serial:
-            logger.info('Target device [{0}]'.format(device_serial))
+        if self.serial:
+            logger.info('Target device [{0}]'.format(self.serial))
         # Backup
         if self.backup:
             tmp_dir = None
@@ -459,21 +460,25 @@ class BackupRestoreHelper(object):
                 logger.debug('TEMP Foler: {}'.format(tmp_dir))
                 # check the local profile folder
                 if os.path.isdir(self.profile_dir):
-                    raise Exception(
-                        '[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.profile_dir)))
+                    if len(os.listdir(self.profile_dir)) == 0:
+                        logger.debug('{} is empty. Clean it.')
+                        shutil.rmtree(self.profile_dir)
+                    else:
+                        raise Exception(
+                            '[{0}] folder already exists. Please check again.'.format(os.path.abspath(self.profile_dir)))
                 # Stop B2G
-                B2GHelper.stop_b2g(serial=device_serial)
+                B2GHelper.stop_b2g(serial=self.serial)
                 # Backup User Profile
-                self.backup_profile(local_dir=tmp_dir, serial=device_serial)
+                self.backup_profile(local_dir=tmp_dir, serial=self.serial)
                 # Backup SDCard
                 if self.sdcard:
-                    self.backup_sdcard(local_dir=tmp_dir, serial=device_serial)
+                    self.backup_sdcard(local_dir=tmp_dir, serial=self.serial)
                 # Copy backup files from temp folder to target folder
                 logger.info('Copy profile from [{0}] to [{1}].'.format(tmp_dir, self.profile_dir))
                 shutil.copytree(tmp_dir, self.profile_dir)
                 # Start B2G
                 if not self.no_reboot:
-                    B2GHelper.start_b2g(serial=device_serial)
+                    B2GHelper.start_b2g(serial=self.serial)
             finally:
                 if tmp_dir:
                     logger.debug('Removing [{0}] folder...'.format(tmp_dir))
@@ -482,17 +487,17 @@ class BackupRestoreHelper(object):
         # Restore
         elif self.restore:
             # Checking the Version of Profile
-            if self._check_profile_version(local_dir=self.profile_dir, serial=device_serial):
+            if self._check_profile_version(local_dir=self.profile_dir, serial=self.serial):
                 # Stop B2G
-                B2GHelper.stop_b2g(serial=device_serial)
+                B2GHelper.stop_b2g(serial=self.serial)
                 # Restore User Profile
-                self.restore_profile(local_dir=self.profile_dir, serial=device_serial)
+                self.restore_profile(local_dir=self.profile_dir, serial=self.serial)
                 # Restore SDCard
                 if self.sdcard:
-                    self.restore_sdcard(local_dir=self.profile_dir, serial=device_serial)
+                    self.restore_sdcard(local_dir=self.profile_dir, serial=self.serial)
                 # Start B2G
                 if not self.no_reboot:
-                    B2GHelper.start_b2g(serial=device_serial)
+                    B2GHelper.start_b2g(serial=self.serial)
             else:
                 logger.error('The version on device is smaller than backup\'s version.')
 
