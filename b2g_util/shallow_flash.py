@@ -14,6 +14,7 @@ import ConfigParser
 from argparse import ArgumentDefaultsHelpFormatter
 from reset_phone import PhoneReseter
 from check_versions import VersionChecker
+from backup_restore_profile import BackupRestoreHelper
 from util.adb_helper import AdbHelper
 from util.adb_helper import AdbWrapper
 from util.b2g_helper import B2GHelper
@@ -82,7 +83,7 @@ class ShallowFlashHelper(object):
         arg_parser.add_argument('-G', '--gecko', action='store', dest='gecko', default=None,
                                 help='Specify the Gecko package. (tar.gz format)')
         arg_parser.add_argument('--keep-profile', action='store_true', dest='keep_profile', default=False,
-                                help='Keep user profile of device. (BETA)')
+                                help='Keep user profile of device. Only work with shallow flash Gaia. (BETA)')
         arg_parser.add_argument('-v', '--verbose', action='store_true', dest='verbose', default=False,
                                 help='Turn on verbose output, with all the debug logger.')
 
@@ -168,17 +169,52 @@ class ShallowFlashHelper(object):
         AdbWrapper.adb_push(settings_path, settings_target_path, serial=self.serial)
         logger.info('Pushing Gaia: Done')
 
+    def _backup_profile(self):
+        """
+        @return: backup profile's folder.
+        """
+        profile_dir = tempfile.mkdtemp(prefix='b2gprofile_')
+        logger.debug('TEMP profile Folder: {}'.format(profile_dir))
+        logger.info('Backup profile to [{}].'.format(profile_dir))
+        backup = BackupRestoreHelper()
+        backup.set_serial(self.serial)
+        backup.set_backup(True)
+        backup.set_no_reboot(True)
+        backup.set_profile_dir(profile_dir)
+        backup.run()
+        #backup.backup_profile(local_dir=profile_dir, serial=self.serial)
+        return profile_dir
+
+    def _restore_profile(self, profile_dir):
+        """
+        @param profile_dir: the backup profile's folder.
+        """
+        if profile_dir:
+            logger.info('Restore profile from [{}].'.format(profile_dir))
+            backup = BackupRestoreHelper()
+            backup.set_serial(self.serial)
+            backup.set_restore(True)
+            backup.set_no_reboot(True)
+            backup.set_skip_version_check(True)
+            backup.set_profile_dir(profile_dir)
+            backup.run()
+
     def shallow_flash_gaia(self):
         """
         Shallow flash Gaia.
         """
+        logger.info('Shallow flash Gaia: Start')
         tmp_dir = None
         try:
+            # keep user profile only work with shallow flash Gaia
+            profile_dir = None
+            if self.keep_profile:
+                profile_dir = self._backup_profile()
             # Create temp folder
             tmp_dir = tempfile.mkdtemp(prefix='shallowflash_')
-            logger.debug('TEMP Gaia Foler: {}'.format(tmp_dir))
+            logger.debug('TEMP Gaia Folder: {}'.format(tmp_dir))
             # check the Gaia package
-            if not self._is_gaia_package(self.gaia) :
+            if not self._is_gaia_package(self.gaia):
                 raise Exception(
                     '[{}] is not Gaia package. Please check again.'.format(os.path.abspath(self.gaia)))
             # unzip Gaia zip to tmp
@@ -186,15 +222,19 @@ class ShallowFlashHelper(object):
             # clean and push gaia profile
             self._clean_gaia()
             self._push_gaia(tmp_dir)
+            # retore profile
+            if self.keep_profile:
+                self._restore_profile(profile_dir)
         finally:
             if tmp_dir:
                 logger.debug('Removing [{0}] folder...'.format(tmp_dir))
                 shutil.rmtree(tmp_dir)
                 logger.debug('TEMP Gaia Folder was removed: {}'.format(tmp_dir))
+        logger.info('Shallow flash Gaia: Done')
 
     def _clean_gecko(self, source_dir):
         logger.info('Cleaning Gecko profile: Start')
-        command_list = ['rm -r /system/media',]
+        command_list = ['rm -r /system/media']
         for cmd in command_list:
             AdbWrapper.adb_shell(cmd, serial=self.serial)
 
@@ -233,11 +273,12 @@ class ShallowFlashHelper(object):
         """
         Shallow flash Gecko.
         """
+        logger.info('Shallow flash Gecko: Start')
         tmp_dir = None
         try:
             # Create temp folder
             tmp_dir = tempfile.mkdtemp(prefix='shallowflash_')
-            logger.debug('TEMP Gecko Foler: {}'.format(tmp_dir))
+            logger.debug('TEMP Gecko Folder: {}'.format(tmp_dir))
             # check the Gaia package
             if not self._is_gecko_package(self.gecko):
                 raise Exception(
@@ -252,6 +293,7 @@ class ShallowFlashHelper(object):
                 logger.debug('Removing [{0}] folder...'.format(tmp_dir))
                 shutil.rmtree(tmp_dir)
                 logger.debug('TEMP Gecko Folder was removed: {}'.format(tmp_dir))
+        logger.info('Shallow flash Gecko: Done')
 
     def prepare_step(self):
         # checking the adb root
@@ -264,8 +306,8 @@ class ShallowFlashHelper(object):
         B2GHelper.stop_b2g(serial=self.serial)
 
     def final_step(self):
-        if self.gaia:
-            # reset phone
+        if self.gaia and not self.keep_profile:
+            # reset phone when flash gaia and not keep profile
             logger.info('Reset device after shallow flash the Gaia.')
             PhoneReseter().reset_phone(serial=self.serial)
         else:
@@ -308,7 +350,6 @@ class ShallowFlashHelper(object):
             if self.gaia:
                 self.shallow_flash_gaia()
             self.final_step()
-
 
 
 def main():

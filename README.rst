@@ -176,7 +176,8 @@ b2g_shallow_flash
       -G GECKO, --gecko GECKO
                             Specify the Gecko package. (tar.gz format) (default:
                             None)
-      --keep-profile        Keep user profile of device. (BETA) (default: False)
+      --keep-profile        Keep user profile of device. Only work with shallow
+                            flash Gaia. (BETA) (default: False)
       -v, --verbose         Turn on verbose output, with all the debug logger.
                             (default: False)
 
