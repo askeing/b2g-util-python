@@ -1,6 +1,15 @@
 Release History
 ---------------
 
+0.0.11 (2015-09-10)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Add keep profile feature of b2g_shallow_flash.
+- Remove gecko.mstone value from pref.js when backup profile.
+
+
 0.0.10 (2015-09-09)
 +++++++++++++++++++
 
