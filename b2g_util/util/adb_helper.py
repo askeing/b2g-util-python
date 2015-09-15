@@ -67,7 +67,7 @@ class AdbWrapper(object):
             cmd = 'adb pull'
         else:
             cmd = 'adb -s %s pull' % (serial,)
-        cmd = '%s %s %s' % (cmd, source, dest)
+        cmd = "%s '%s' '%s'" % (cmd, source, dest)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
@@ -89,7 +89,7 @@ class AdbWrapper(object):
             cmd = 'adb push'
         else:
             cmd = 'adb -s %s push' % (serial,)
-        cmd = '%s %s %s' % (cmd, source, dest)
+        cmd = "%s '%s' '%s'" % (cmd, source, dest)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output, stderr = p.communicate()
         logger.debug('CMD: {0}'.format(cmd))
