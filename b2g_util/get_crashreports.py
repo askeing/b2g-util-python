@@ -22,8 +22,8 @@ class CrashReporter(object):
     """
 
     def __init__(self):
-        self.pending_path = '/data/b2g/mozilla/Crash\ Reports/pending'
-        self.submitted_path = '/data/b2g/mozilla/Crash\ Reports/submitted'
+        self.pending_path = '/data/b2g/mozilla/Crash Reports/pending'
+        self.submitted_path = '/data/b2g/mozilla/Crash Reports/submitted'
         self.pending_stdout = None
         self.submitted_stdout = None
         self.pending_files = []
@@ -89,11 +89,11 @@ class CrashReporter(object):
         AdbWrapper.adb_root(serial=serial)
         logger.info('Getting Crash Reports...')
 
-        self.pending_stdout, retcode_pending = AdbWrapper.adb_shell('ls -al {}'.format(self.pending_path),
+        self.pending_stdout, retcode_pending = AdbWrapper.adb_shell('ls -al "{}"'.format(self.pending_path),
                                                              serial=serial)
         print('Pending Crash Reports:\n{}\n'.format(self.pending_stdout))
 
-        self.submitted_stdout, retcode_submitted = AdbWrapper.adb_shell('ls -al {}'.format(self.submitted_path),
+        self.submitted_stdout, retcode_submitted = AdbWrapper.adb_shell('ls -al "{}"'.format(self.submitted_path),
                                                                  serial=serial)
         print('Submitted Crash Reports:\n{}\n'.format(self.submitted_stdout))
         # parse stdout for getting filepath
