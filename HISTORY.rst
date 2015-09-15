@@ -1,6 +1,15 @@
 Release History
 ---------------
 
+0.0.12 (2015-09-15)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Add space in filepath support for AdbWrapper's pull and push.
+- Add pending/submitted filepath into result dict object for get_crashreports.
+
+
 0.0.11 (2015-09-10)
 +++++++++++++++++++
 
