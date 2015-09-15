@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import re
+import os
 import json
 import logging
 import argparse
@@ -21,8 +22,12 @@ class CrashReporter(object):
     """
 
     def __init__(self):
-        self.pending = None
-        self.submitted = None
+        self.pending_path = '/data/b2g/mozilla/Crash\ Reports/pending'
+        self.submitted_path = '/data/b2g/mozilla/Crash\ Reports/submitted'
+        self.pending_stdout = None
+        self.submitted_stdout = None
+        self.pending_files = []
+        self.submitted_files = []
         self.submitted_url_list = []
         self.serial = None
         self.log_json = None
@@ -84,30 +89,47 @@ class CrashReporter(object):
         AdbWrapper.adb_root(serial=serial)
         logger.info('Getting Crash Reports...')
 
-        self.pending, retcode_pending = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/pending',
+        self.pending_stdout, retcode_pending = AdbWrapper.adb_shell('ls -al {}'.format(self.pending_path),
                                                              serial=serial)
-        print('Pending Crash Reports:\n{}\n'.format(self.pending))
+        print('Pending Crash Reports:\n{}\n'.format(self.pending_stdout))
 
-        self.submitted, retcode_submitted = AdbWrapper.adb_shell('ls -al /data/b2g/mozilla/Crash\ Reports/submitted',
+        self.submitted_stdout, retcode_submitted = AdbWrapper.adb_shell('ls -al {}'.format(self.submitted_path),
                                                                  serial=serial)
-        print('Submitted Crash Reports:\n{}\n'.format(self.submitted))
+        print('Submitted Crash Reports:\n{}\n'.format(self.submitted_stdout))
+        # parse stdout for getting filepath
+        self.pending_files = self._parse_stdout(self.pending_path, self.pending_stdout)
+        self.submitted_files = self._parse_stdout(self.submitted_path, self.submitted_stdout)
 
         self.submitted_url_list = []
         if retcode_submitted == 0:
             print('The links of Submitted Crash Reports:')
-            for line in self.submitted.split('\n'):
+            for line in self.submitted_stdout.split('\n'):
                 submmited_id = re.sub(r'\.txt\s*$', '', re.sub(r'^.+bp-', '', line))
                 submitted_url = 'https://crash-stats.mozilla.com/report/index/{}'.format(submmited_id)
                 self.submitted_url_list.append(submitted_url)
                 print(submitted_url)
+
+    def _parse_stdout(self, base_path='', stdout=''):
+        if not stdout or 'No such file or directory' in stdout:
+            return []
+        else:
+            result = []
+            lines = stdout.replace('\r', '').split('\n')
+            for line in lines:
+                path = os.path.join(base_path, line.rsplit(' ', 1)[1])
+                result.append(path)
+                logger.debug('parse: {} to {}'.format(line, path))
+            return result
 
     def get_crashreports_info_dict(self):
         """
         Get the Crash Reports information dict.
         @return: the list of Submitted URL.
         """
-        return {'PendingCrashReportsStdout': self.pending,
-                'SubmittedCrashReportsStdout': self.submitted,
+        return {'PendingCrashReportsStdout': self.pending_stdout,
+                'SubmittedCrashReportsStdout': self.submitted_stdout,
+                'PendingCrashReports': self.pending_files,
+                'SubmittedCrashReports': self.submitted_files,
                 'SubmittedUrl': self.submitted_url_list}
 
     def output_log(self):
