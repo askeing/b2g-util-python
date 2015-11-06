@@ -1,6 +1,13 @@
 Release History
 ---------------
 
+0.0.13 (2015-11-02)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Add b2g_flash_taskcluster
+
 0.0.12 (2015-09-15)
 +++++++++++++++++++
 

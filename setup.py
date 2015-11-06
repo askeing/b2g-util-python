@@ -2,9 +2,11 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '0.0.12'
+VERSION = '0.0.13'
 
-install_requires = []
+install_requires = [
+    'taskcluster_util==0.0.22',
+]
 
 here = os.path.dirname(os.path.abspath(__file__))
 # get documentation from the README and HISTORY
@@ -42,6 +44,7 @@ if __name__ == '__main__':
         b2g_backup_restore_profile = b2g_util.backup_restore_profile:main
         b2g_check_versions = b2g_util.check_versions:main
         b2g_enable_certapps_devtools = b2g_util.enable_certapps_devtools:main
+        b2g_flash_taskcluster = b2g_util.flash_taskcluster:main
         b2g_get_crashreports = b2g_util.get_crashreports:main
         b2g_reset_phone = b2g_util.reset_phone:main
         b2g_shallow_flash = b2g_util.shallow_flash:main

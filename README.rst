@@ -32,6 +32,7 @@ There are some available b2g tools.
 - b2g_backup_restore_profile
 - b2g_check_versions
 - b2g_enable_certapps_devtools
+- b2g_flash_taskcluster
 - b2g_get_crashreports
 - b2g_reset_phone
 - b2g_shallow_flash
@@ -116,6 +117,46 @@ b2g_enable_certapps_devtools
     Ref:
     - https://developer.mozilla.org/en-US/docs/Tools/WebIDE
     - https://developer.mozilla.org/en-US/docs/Tools/WebIDE/Running_and_debugging_apps#Debugging_apps
+
+
+b2g_flash_taskcluster
++++++++++++++++++++++
+
+.. code-block:: bash
+
+    usage: b2g_flash_taskcluster [-h] [--credentials CREDENTIALS] [-n NAMESPACE]
+                                 [-d DEST_DIR] [-v]
+
+    The simple GUI tool for flashing B2G from Taskcluster.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --credentials CREDENTIALS
+                            The credential JSON file
+                            (default: /home/askeing/tc_credentials.json)
+      -n NAMESPACE, --namespace NAMESPACE
+                            The namespace of task
+      -d DEST_DIR, --dest-dir DEST_DIR
+                            The dest folder (default: current working folder)
+      -v, --verbose         Turn on verbose output, with all the debug logger.
+
+    For more information of Taskcluster, see:
+    - http://docs.taskcluster.net/
+    - https://pypi.python.org/pypi/taskcluster_util
+
+    The tc_credentials.json Template:
+        {
+            "clientId": "",
+            "accessToken": "",
+            "certificate": {
+                "version":1,
+                "scopes":["*"],
+                "start":xxx,
+                "expiry":xxx,
+                "seed":"xxx",
+                "signature":"xxx"
+            }
+        }
 
 
 b2g_get_crashreports
