@@ -123,6 +123,28 @@ class B2GTraverseRunner(TraverseRunner):
                 return False
         return False
 
+    def generate_flash_message(self):
+        msg = 'What do you want to flash?\n\n' \
+            '- Skip: do not want to flash any thing.\n'
+        msg_footer = ''
+
+        if _platform == "win32":
+            logger.info('Flash B2G Image cannot run on Windows.')
+        else:
+            if self.has_image:
+                msg = msg + '- Image: flash images into device.\n'
+                msg_footer = msg_footer + '[Image] {}\n'.format(self.image_path)
+        if self.has_gaia:
+            msg = msg + '- Gaia: only shallow flash Gaia.\n'
+            msg_footer = msg_footer + '[Gaia] {}\n'.format(self.gaia_path)
+        if self.has_gecko:
+            msg = msg + '- Gecko: only shallow flash Gecko.\n'
+            msg_footer = msg_footer + '[Gecko] {}\n'.format(self.gecko_path)
+        if self.has_gaia and self.has_gecko:
+            msg = msg + '- Gaia_Gecko: shallow flash both Gaia and Gecko.\n'
+        msg = msg + '\n' + msg_footer + '\nMake sure there is only ONE device connected to the computer!'
+        return msg
+
     def generate_flash_choices(self):
         choices = ['Skip']
         if _platform == "win32":
@@ -137,6 +159,11 @@ class B2GTraverseRunner(TraverseRunner):
         if self.has_gaia and self.has_gecko:
             choices.append('Gaia_Gecko')
         return choices
+
+    def _flash_again(self):
+        title = 'Flash Again?'
+        msg = 'Would you like to flash next devcie with the same build?'
+        return easygui.ynbox(msg, title)
 
     def flash_Skip(self):
         logger.info('Skip flash.')
@@ -162,10 +189,7 @@ class B2GTraverseRunner(TraverseRunner):
                 checker = VersionChecker()
                 checker.run()
                 # flash more than one device
-                title = 'Flash Again?'
-                msg = 'Would you like to flash next devcie?'
-                reply = easygui.ynbox(msg, title)
-                if not reply:
+                if not self._flash_again():
                     break
         finally:
             try:
@@ -207,13 +231,23 @@ class B2GTraverseRunner(TraverseRunner):
                     sfh.set_keep_profile(keep_profile)
                 sfh.run()
                 # flash more than one device
-                title = 'Flash Again?'
-                msg = 'Would you like to flash next devcie?'
-                reply = easygui.ynbox(msg, title)
-                if not reply:
+                if not self._flash_again():
                     break
         else:
             logger.warning('No Gaia and no Gecko for flashing.')
+
+    def _reset_arguments(self):
+        # reset image args
+        self.has_image = False
+        self.image_path = None
+        # reset gaia args
+        self.has_gaia = False
+        self.gaia_path = None
+        # reset gecko args
+        self.has_gecko = False
+        self.gecko_path = None
+        logger.debug('Reset image/gaia/gecko path and flags.')
+        super(B2GTraverseRunner, self)._reset_arguments()
 
     def do_after_download(self):
         """
@@ -232,9 +266,10 @@ class B2GTraverseRunner(TraverseRunner):
             # there is no any package found
             easygui.msgbox('Cannot found B2G Image, Gaia, and Gecko.', ok_button='I know')
         else:
-            msg = 'What do you want to flash?\n\nMake sure there is only ONE device connected to the computer!'
+            title = 'Flash B2G'
+            msg = self.generate_flash_message()
             choices = self.generate_flash_choices()
-            reply = easygui.buttonbox(msg, choices=choices)
+            reply = easygui.buttonbox(msg, title, choices=choices)
             logger.info('Select: {}'.format(reply))
             # then call method by reply's string
             if reply:
