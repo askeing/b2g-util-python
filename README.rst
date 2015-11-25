@@ -165,6 +165,8 @@ You can get your temporary credentials from https://auth.taskcluster.net/ (using
 
 The temporary credentials will remain valid for 31 days.
 
+Or you can just run **taskcluster_login** to get your credentials. (Note: it will remove your old credentials file.)
+
 tc_credentials.json
 ~~~~~~~~~~~~~~~~~~~
 
