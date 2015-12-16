@@ -233,6 +233,58 @@ class AdbWrapperTester(unittest.TestCase):
         ret = AdbWrapper.adb_wait_for_device(timeout=10)
         self.assertTrue(ret, 'The result should be True.')
 
+    def test_forward_list(self):
+        """
+        test forward --list
+        """
+        str_ret = textwrap.dedent("""\
+e481d888 tcp:49662 tcp:2828
+e479da98 tcp:57988 tcp:2828
+e47cd830 tcp:45784 tcp:2828
+e47cd887 tcp:41946 tcp:2828
+7ed3ca11 tcp:39961 tcp:2828
+""")
+        expected_ret = {"e481d888": {"source": "tcp:49662", "dest": "tcp:2828"},
+                        "e479da98": {"source": "tcp:57988", "dest": "tcp:2828"},
+                        "e47cd830": {"source": "tcp:45784", "dest": "tcp:2828"},
+                        "e47cd887": {"source": "tcp:41946", "dest": "tcp:2828"},
+                        "7ed3ca11": {"source": "tcp:39961", "dest": "tcp:2828"}}
+        self.mock_obj.communicate.return_value = [str_ret, None]
+        self.mock_popen.return_value = self.mock_obj
+        fwd_list = AdbWrapper.adb_forward(command="list")
+        self.assertEqual(fwd_list, expected_ret,
+                         'The result should be {}, not {}.'.format(expected_ret, fwd_list))
+
+    def test_forward_add(self):
+        """
+        test to add forward
+        """
+        str_ret = textwrap.dedent("")
+        self.mock_obj.communicate.return_value = [str_ret, None]
+        self.mock_popen.return_value = self.mock_obj
+        ret = AdbWrapper.adb_forward(source="tcp:2828", dest="tcp:2828")
+        self.assertTrue(ret, 'The result should be True.')
+        
+    def test_forward_remove(self):
+        """
+        test remove a forward
+        """
+        str_ret = textwrap.dedent("")
+        self.mock_obj.communicate.return_value = [str_ret, None]
+        self.mock_popen.return_value = self.mock_obj
+        ret = AdbWrapper.adb_forward(command="remove", dest="tcp:2828")
+        self.assertTrue(ret, 'The result should be True.')
+
+    def test_forward_remove_no_dest(self):
+        """
+        test remove a forward by wrong argv
+        """
+        str_ret = textwrap.dedent("")
+        self.mock_obj.communicate.return_value = [str_ret, None]
+        self.mock_popen.return_value = self.mock_obj
+        ret = AdbWrapper.adb_forward(command="remove", source="tcp:2828")
+        self.assertFalse(ret, 'The result should be False.')
+
     def tearDown(self):
         # stop
         self.popen_patcher.stop()

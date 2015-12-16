@@ -101,6 +101,51 @@ class AdbWrapper(object):
         return output
 
     @classmethod
+    def adb_forward(cls, command=None, source=None, dest=None, serial=None):
+        """
+        Use port forwarding on device.
+        @return: the stdout and return code (from device) of "adb forward" command. e.g. (stdout, retcode)
+        @raise exception: When return code (from adb command) isn't zero.
+        When using remove command, only dest should be mentioned, e.g. adb_forward('remove', dest="tcp:12345")
+        """
+        if serial is None:
+            cmd = 'adb forward'
+        else:
+            cmd = 'adb -s %s forward' % (serial,)
+        # get returncode from device
+        if command:
+            cmd += " --%s" % (command,)
+            if 'remove' == command:
+                # only get dest for remove, assert error if no dest
+                if not dest:
+                    logger.error("dest needs to be assigned when using forward --remove")
+                    return False
+                cmd += (" " + dest)
+        else:
+            cmd += '%s %s %s' % (cmd, source, dest)
+        cmd = "%s '%s; echo $?'" % (cmd, command)
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        shell_ret, stderr = p.communicate()
+        logger.debug('CMD: {0}'.format(cmd))
+        logger.debug('RAW_RET: {0}'.format(shell_ret))
+        if stderr:
+            logger.debug('RAW_ERR: {0}'.format(stderr))
+        if p.returncode is not 0:
+            if command == 'remove':
+                shell_ret = "remove error; check if serial not specified\n" + shell_ret
+            raise Exception('{}'.format({'STDOUT': shell_ret, 'STDERR': stderr}))
+        if command == 'list':
+            # converse to json format forward list (from device)
+            shell_ret = filter(lambda x: x, shell_ret.split("\n"))
+            shell_ret = map(lambda x: x.split(' '), shell_ret)
+            forward_list = {}
+            for i in shell_ret:
+                forward_list[i[0]] = {'source': i[1], 'dest': i[2]}
+            logger.debug('forward list = %s' % (forward_list,))
+            return forward_list
+        return True
+
+    @classmethod
     def adb_shell(cls, command, serial=None):
         """
         Run command on device.
