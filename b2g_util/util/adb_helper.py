@@ -101,28 +101,79 @@ class AdbWrapper(object):
         return output
 
     @classmethod
-    def adb_forward(cls, command=None, source=None, dest=None, serial=None):
+    def adb_forward(cls, command=None, local=None, remote=None, serial=None):
         """
-        Use port forwarding on device.
+        Forward socket connections.
+        @param command: additional forwarding commands, ex: "list", "no-rebind", "remove", "remove-all".
+
+             >>> command list:
+             (command='list'): adb forward --list
+             (command='no-rebind', local=<local>, remote=<remote>): adb forward --no-rebind <local> <remote>
+             (command='remove', local=<local>): adb forward --remove <local>
+             (command='remove-all'): adb forward --remove-all
+
+        @param local: local socket connection.
+
+            >>> example:
+            tcp:<port>
+            localabstract:<unix domain socket name>
+            localreserved:<unix domain socket name>
+            localfilesystem:<unix domain socket name>
+            dev:<character device name>
+
+        @param remote: remote socket connection.
+
+            >>> example:
+            tcp:<port>
+            localabstract:<unix domain socket name>
+            localreserved:<unix domain socket name>
+            localfilesystem:<unix domain socket name>
+            dev:<character device name>
+            jdwp:<process pid>
+
         @return: the stdout and return code (from device) of "adb forward" command. e.g. (stdout, retcode)
         @raise exception: When return code (from adb command) isn't zero.
-        When using remove command, only dest should be mentioned, e.g. adb_forward('remove', dest="tcp:12345")
         """
         if serial is None:
             cmd = 'adb forward'
         else:
             cmd = 'adb -s %s forward' % (serial,)
-        # get returncode from device
+
+        def generate_command(origin_cmd, input_command, input_local, input_remote):
+            """
+            check and generate the forwarding command.
+            """
+            origin_cmd += ' --%s' % (input_command,)
+            if 'remove' == input_command:
+                if not input_local:
+                    raise Exception('should specific local socket connection when {}'.format(input_command))
+                origin_cmd += ' {}'.format(input_local)
+            elif 'no-rebind' == input_command:
+                if not input_local or not input_remote:
+                    raise Exception('should specific local and remote socket connection when {}'.format(input_command))
+                origin_cmd += ' {} {}'.format(input_local, input_remote)
+            return origin_cmd
+
+        def generate_forwarding_dict(origin_ret):
+            """
+            convert the result of "forwad --list" to dict
+            """
+            origin_ret = filter(lambda x: x, origin_ret.split("\n"))
+            origin_ret = map(lambda x: x.split(' '), origin_ret)
+            forward_list = {}
+            for i in origin_ret:
+                forward_list[i[0]] = {'source': i[1], 'dest': i[2]}
+            logger.debug('forward list = %s' % (forward_list,))
+            return forward_list
+
         if command:
-            cmd += " --%s" % (command,)
-            if 'remove' == command:
-                # only get dest for remove, assert error if no dest
-                if not dest:
-                    logger.error("dest needs to be assigned when using forward --remove")
-                    return False
-                cmd += (" " + dest)
+            try:
+                cmd = generate_command(cmd, command, local, remote)
+            except Exception as e:
+                logger.error(e)
+                return False
         else:
-            cmd += '%s %s %s' % (cmd, source, dest)
+            cmd += "%s '%s' '%s'" % (cmd, local, remote)
         cmd = "%s '%s; echo $?'" % (cmd, command)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         shell_ret, stderr = p.communicate()
@@ -131,18 +182,9 @@ class AdbWrapper(object):
         if stderr:
             logger.debug('RAW_ERR: {0}'.format(stderr))
         if p.returncode is not 0:
-            if command == 'remove':
-                shell_ret = "remove error; check if serial not specified\n" + shell_ret
-            raise Exception('{}'.format({'STDOUT': shell_ret, 'STDERR': stderr}))
+            raise Exception('{}'.format({'STDOUT': shell_ret, 'STDERR': stderr, 'CMD': cmd}))
         if command == 'list':
-            # converse to json format forward list (from device)
-            shell_ret = filter(lambda x: x, shell_ret.split("\n"))
-            shell_ret = map(lambda x: x.split(' '), shell_ret)
-            forward_list = {}
-            for i in shell_ret:
-                forward_list[i[0]] = {'source': i[1], 'dest': i[2]}
-            logger.debug('forward list = %s' % (forward_list,))
-            return forward_list
+            return generate_forwarding_dict(shell_ret)
         return True
 
     @classmethod
