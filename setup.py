@@ -2,10 +2,10 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '0.0.15'
+VERSION = '0.0.16'
 
 install_requires = [
-    'taskcluster_util==0.0.25',
+    'taskcluster_util==0.0.26',
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -48,5 +48,6 @@ if __name__ == '__main__':
         b2g_get_crashreports = b2g_util.get_crashreports:main
         b2g_reset_phone = b2g_util.reset_phone:main
         b2g_shallow_flash = b2g_util.shallow_flash:main
+        b2g_quick_flash = b2g_util.quick_flash:main
         """,
     )

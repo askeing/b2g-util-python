@@ -1,6 +1,14 @@
 Release History
 ---------------
 
+0.0.16 (2015-12-24)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Update taskcluster_util to 0.0.26
+- Add b2g_quick_flash
+
 0.0.15 (2015-11-30)
 +++++++++++++++++++
 

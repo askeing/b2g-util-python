@@ -174,13 +174,13 @@ You can put the credentials into **tc_credentials.json** file under your home fo
 
 .. code-block:: bash
 
-	$ <YOUR_EDITOR> ~/tc_credentials.json
+    $ <YOUR_EDITOR> ~/tc_credentials.json
 
 The file format will be:
 
 .. code-block::
 
-	{
+    {
 		"clientId": "<YOUR_CLIENTID>",
 		"accessToken": "<YOUR_ACCESSTOKEN>",
 		"certificate": <YOUR_CERTIFICATE>
@@ -204,6 +204,28 @@ b2g_get_crashreports
                             environment variable. (default: None)
       -v, --verbose         Turn on verbose output, with all the debug logger.
                             (default: False)
+
+
+b2g_quick_flash
++++++++++++++++
+
+.. code-block:: bash
+
+    usage: b2g_quick_flash [-h] [-l] [-v]
+
+    Simply flash B2G into device. Ver. 0.0.1
+
+    optional arguments:
+      -h, --help     show this help message and exit
+      -l, --list     List supported devices and branches. (default: False)
+      -v, --verbose  Turn on verbose output, with all the debug logger. (default:
+                     False)
+
+
+Temporary Credentials
+*********************
+
+See **b2g_flash_taskcluster** session.
 
 
 b2g_reset_phone
