@@ -182,7 +182,6 @@ class ShallowFlashHelper(object):
         backup.set_no_reboot(True)
         backup.set_profile_dir(profile_dir)
         backup.run()
-        #backup.backup_profile(local_dir=profile_dir, serial=self.serial)
         return profile_dir
 
     def _restore_profile(self, profile_dir):
