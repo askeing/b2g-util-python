@@ -34,6 +34,7 @@ There are some available b2g tools.
 - b2g_enable_certapps_devtools
 - b2g_flash_taskcluster
 - b2g_get_crashreports
+- b2g_quick_flash
 - b2g_reset_phone
 - b2g_shallow_flash
 
