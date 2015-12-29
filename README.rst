@@ -331,7 +331,7 @@ If you meet any issues related to urllib3, SSL, or tk, please install following 
 
 .. code-block:: bash
 
-    sudo apt-get install python python-dev python-setuptools libffi-dev libssl-dev
+    sudo apt-get install python python-dev python-setuptools libffi-dev libssl-dev python-tk
     sudo easy_install pip
     sudo pip install -U pip setuptools
     sudo pip install -U requests
