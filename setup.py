@@ -2,10 +2,10 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '0.0.16'
+VERSION = '0.0.17'
 
 install_requires = [
-    'taskcluster_util==0.0.26',
+    'taskcluster_util==0.0.27',
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))

@@ -1,6 +1,13 @@
 Release History
 ---------------
 
+0.0.17 (2016-01-05)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Update taskcluster_util to 0.0.27
+
 0.0.16 (2015-12-24)
 +++++++++++++++++++
 
