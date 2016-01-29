@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 VERSION = '0.0.18'
 
 install_requires = [
-    'taskcluster_util==0.0.28',
+    'taskcluster_util==0.0.30',
 ]
 
 here = os.path.dirname(os.path.abspath(__file__))

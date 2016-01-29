@@ -7,7 +7,7 @@ Release History
 **Features and Improvements**
 
 - Enable adb for dev tool debugging
-- Update taskcluster_util to 0.0.28
+- Update taskcluster_util to 0.0.30
 
 **bugfixes**
 
