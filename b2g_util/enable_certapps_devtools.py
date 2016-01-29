@@ -87,6 +87,14 @@ class FullPrivilegeResetter(object):
         return self
 
     @staticmethod
+    def enable_adb_for_debug(file_handler):
+        logger.info('Enable adb for debug.')
+        # Do not disable adb when screen is off with lock screen enabled
+        file_handler.write('user_pref("marionette.defaultPrefs.enabled", true);')
+        # Do not prompt for debugging connection
+        file_handler.write('user_pref("devtools.debugger.prompt-connection", false);')
+
+    @staticmethod
     def setup_certapps(enable=True, serial=None):
         """
         Set the devtools permission for certapps.
@@ -144,6 +152,8 @@ class FullPrivilegeResetter(object):
                                 logger.info('Adding setting of pref.js file...')
                                 fw.write(
                                     'user_pref("devtools.debugger.forbid-certified-apps", {});\n'.format(is_forbid))
+                    if need_restart:
+                        FullPrivilegeResetter.enable_adb_for_debug(fw)
             if need_restart:
                 B2GHelper.stop_b2g(serial=serial)
                 try:
