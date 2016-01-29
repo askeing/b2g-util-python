@@ -173,7 +173,7 @@ class AdbWrapper(object):
                 logger.error(e)
                 return False
         else:
-            cmd += "%s '%s' '%s'" % (cmd, local, remote)
+            cmd = "%s '%s' '%s'" % (cmd, local, remote)
         cmd = "%s '%s; echo $?'" % (cmd, command)
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         shell_ret, stderr = p.communicate()
