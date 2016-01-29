@@ -1,6 +1,18 @@
 Release History
 ---------------
 
+0.0.18 (2016-01-29)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Enable adb for dev tool debugging
+- Update taskcluster_util to 0.0.28
+
+**bugfixes**
+
+- Fix the bug of adb forward.
+
 0.0.17 (2016-01-05)
 +++++++++++++++++++
 
