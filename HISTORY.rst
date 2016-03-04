@@ -1,6 +1,13 @@
 Release History
 ---------------
 
+0.0.19 (2016-03-04)
++++++++++++++++++++
+
+**Features and Improvements**
+
+- Add D5833 supoort of b2g_quick_flash
+
 0.0.18 (2016-01-29)
 +++++++++++++++++++
 

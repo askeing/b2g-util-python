@@ -2,7 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 
-VERSION = '0.0.18'
+VERSION = '0.0.19'
 
 install_requires = [
     'taskcluster_util==0.0.30',

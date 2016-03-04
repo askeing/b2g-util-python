@@ -24,10 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class QuickFlashHelper(object):
-    LAST_UPDATE = '2015-12-24'
+    LAST_UPDATE = '2016-03-04'
 
     SUPPORT_DEVICES = {'flame': {'name': 'flame-kk', 'image': 'flame-kk.zip'},
-                       'aries': {'name': 'aries', 'image': 'aries.zip'}}
+                       'aries': {'name': 'aries', 'image': 'aries.zip'},
+                       'D5833': {'name': 'aries', 'image': 'aries.zip'}}
     SUPPORT_BRANCHES = ['mozilla-central', 'mozilla-b2g44_v2_5']
     SUPPORT_BUILDS = {'Engineer Build': '-eng-opt', 'User Build': '-opt'}
 
